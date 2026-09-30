@@ -1,0 +1,178 @@
+{
+  "info": {
+    "name": "WasteSphere API Collection",
+    "description": "Postman API testing collection for WasteSphere Backend",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Health Check",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/health",
+          "host": ["{{baseUrl}}"],
+          "path": ["health"]
+        }
+      }
+    },
+    {
+      "name": "Auth - Register Citizen",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"name\": \"John Citizen\",\n  \"email\": \"citizen@wastesphere.org\",\n  \"password\": \"Password123!\",\n  \"phone\": \"+1234567890\"\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/auth/register",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "auth", "register"]
+        }
+      }
+    },
+    {
+      "name": "Auth - Register Admin",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"name\": \"Officer Smith\",\n  \"email\": \"admin@wastesphere.org\",\n  \"password\": \"AdminPass123!\",\n  \"phone\": \"+1987654321\",\n  \"governmentIdUrl\": \"https://images.unsplash.com/photo-1570295999919-56ceb5ecca61\"\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/auth/admin/register",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "auth", "admin", "register"]
+        }
+      }
+    },
+    {
+      "name": "Auth - Login",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"email\": \"citizen@wastesphere.org\",\n  \"password\": \"Password123!\"\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/auth/login",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "auth", "login"]
+        }
+      }
+    },
+    {
+      "name": "AI - Waste Recognition",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" },
+          { "key": "Authorization", "value": "Bearer {{token}}" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"imageUrl\": \"https://images.unsplash.com/photo-1530587191325-3db32d826c18\"\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/ai/waste-recognition",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "ai", "waste-recognition"]
+        }
+      }
+    },
+    {
+      "name": "Report - Submit Complaint",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" },
+          { "key": "Authorization", "value": "Bearer {{token}}" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"wastePhotoUrl\": \"https://images.unsplash.com/photo-1530587191325-3db32d826c18\",\n  \"wasteType\": \"Plastic Waste\",\n  \"issueType\": \"Overflowing Garbage Bin\",\n  \"description\": \"Large accumulation of plastic bottles near the public park entrance.\",\n  \"latitude\": 12.9716,\n  \"longitude\": 77.5946,\n  \"address\": \"Central Park Gate 3, MG Road\",\n  \"landmark\": \"Opposite Metro Station\",\n  \"severity\": \"High\"\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/reports",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "reports"]
+        }
+      }
+    },
+    {
+      "name": "Report - Get My Reports",
+      "request": {
+        "method": "GET",
+        "header": [
+          { "key": "Authorization", "value": "Bearer {{token}}" }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/reports/my-reports",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "reports", "my-reports"]
+        }
+      }
+    },
+    {
+      "name": "Pickup - Submit Request",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" },
+          { "key": "Authorization", "value": "Bearer {{token}}" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"wasteType\": \"E-Waste\",\n  \"latitude\": 12.9716,\n  \"longitude\": 77.5946,\n  \"address\": \"Flat 402, Oakwood Apartments, Indiranagar\",\n  \"preferredDate\": \"2026-10-05\",\n  \"preferredTime\": \"Morning 10:00 AM - 1:00 PM\",\n  \"additionalDetails\": \"Old computers, cables, and electronic scrap.\"\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/pickups",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "pickups"]
+        }
+      }
+    },
+    {
+      "name": "Recognition - Get My Badge Status",
+      "request": {
+        "method": "GET",
+        "header": [
+          { "key": "Authorization", "value": "Bearer {{token}}" }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/recognition/my-recognition",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "recognition", "my-recognition"]
+        }
+      }
+    },
+    {
+      "name": "Certificate - Check Eligibility",
+      "request": {
+        "method": "GET",
+        "header": [
+          { "key": "Authorization", "value": "Bearer {{token}}" }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/certificates/eligibility",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "certificates", "eligibility"]
+        }
+      }
+    }
+  ],
+  "variable": [
+    { "key": "baseUrl", "value": "http://localhost:5000" },
+    { "key": "token", "value": "" }
+  ]
+}
