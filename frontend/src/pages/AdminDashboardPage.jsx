@@ -105,17 +105,17 @@ export const AdminDashboardPage = () => {
 
   if (isPendingAdmin) {
     return (
-      <div className="max-w-3xl mx-auto px-4 py-16 text-center space-y-6 bg-[#0b141a]">
-        <div className="w-16 h-16 rounded-full bg-amber-500/20 text-amber-400 flex items-center justify-center mx-auto border border-amber-500/30">
+      <div className="max-w-3xl mx-auto px-4 py-16 text-center space-y-6">
+        <div className="w-16 h-16 rounded-full bg-accent/20 text-accent flex items-center justify-center mx-auto border border-accent/30">
           <Clock className="w-8 h-8" />
         </div>
-        <h1 className="text-3xl font-extrabold text-white">Admin Verification Pending</h1>
-        <p className="text-[#8696a0] text-sm max-w-md mx-auto">
+        <h1 className="text-3xl font-extrabold text-foreground">Admin Verification Pending</h1>
+        <p className="text-muted-foreground text-sm max-w-md mx-auto">
           Your government officer ID photo proof has been submitted and is currently pending review by platform administrators. Access to the Admin Dashboard is restricted until verification approval.
         </p>
         <Link
           to="/admin/verifications"
-          className="inline-block px-6 py-3 rounded-xl bg-[#00a884] text-[#111b21] font-bold text-xs shadow-lg"
+          className="inline-block px-6 py-3 rounded-xl bg-primary text-primary-foreground font-bold text-xs shadow-lg"
         >
           Check Officer Verification Status →
         </Link>
@@ -134,26 +134,26 @@ export const AdminDashboardPage = () => {
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       transition={{ duration: 0.3 }}
-      className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8 bg-[#0b141a]"
+      className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8"
     >
       {/* Top Banner */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 p-6 rounded-2xl glass-panel border border-[#2a3942] bg-gradient-to-r from-[#12332a] via-[#1f2c34] to-[#0b141a]">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 p-6 rounded-2xl glass-panel border border-border bg-secondary/40">
         <div>
-          <div className="inline-flex items-center gap-2 text-xs font-semibold text-[#25d366]">
+          <div className="inline-flex items-center gap-2 text-xs font-semibold text-primary">
             <Building2 className="w-4 h-4" /> Approved Municipal Officer Portal
           </div>
-          <h1 className="text-2xl sm:text-3xl font-extrabold text-white mt-1">
+          <h1 className="text-2xl sm:text-3xl font-extrabold text-foreground mt-1">
             Admin Management & Analytics
           </h1>
-          <p className="text-xs text-[#8696a0]">
-            Logged in as: <strong className="text-[#25d366]">{user?.name || 'Officer Rajesh Kumar'}</strong> (Verified Status: <span className="text-[#25d366]">Approved</span>)
+          <p className="text-xs text-muted-foreground">
+            Logged in as: <strong className="text-primary">{user?.name || 'Officer Rajesh Kumar'}</strong> (Verified Status: <span className="text-primary">Approved</span>)
           </p>
         </div>
 
         <div className="flex items-center gap-3">
           <Link
             to="/admin/verifications"
-            className="px-4 py-2.5 rounded-xl glass-panel border border-[#2a3942] text-[#25d366] hover:bg-[#1f2c34] text-xs font-semibold flex items-center gap-1.5"
+            className="px-4 py-2.5 rounded-xl border border-border text-primary hover:bg-muted text-xs font-semibold flex items-center gap-1.5"
           >
             <UserCheck className="w-4 h-4" /> Pending ID Verifications
           </Link>
@@ -161,7 +161,7 @@ export const AdminDashboardPage = () => {
             whileHover={{ scale: 1.02 }}
             whileTap={{ scale: 0.98 }}
             onClick={handleIssueCertificate}
-            className="px-4 py-2.5 rounded-xl bg-gradient-to-r from-[#00a884] to-[#25d366] text-[#111b21] text-xs font-bold shadow-md flex items-center gap-1.5"
+            className="px-4 py-2.5 rounded-xl bg-primary hover:bg-primary/90 text-primary-foreground text-xs font-bold shadow-md flex items-center gap-1.5"
           >
             <FileCheck className="w-4 h-4" /> Issue Citizen Certificate
           </motion.button>
@@ -171,49 +171,49 @@ export const AdminDashboardPage = () => {
       {/* Metrics Row */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
         <BorderGlowCard className="p-5">
-          <div className="text-xs text-[#8696a0] font-semibold uppercase">Total Reports Received</div>
-          <div className="text-3xl font-extrabold text-white mt-1">{complaints.length}</div>
-          <div className="text-xs text-amber-400 mt-1">{pendingCount} awaiting initial review</div>
+          <div className="text-xs text-muted-foreground font-semibold uppercase">Total Reports Received</div>
+          <div className="text-3xl font-extrabold text-foreground mt-1">{complaints.length}</div>
+          <div className="text-xs text-accent mt-1">{pendingCount} awaiting initial review</div>
         </BorderGlowCard>
 
         <BorderGlowCard className="p-5">
-          <div className="text-xs text-[#8696a0] font-semibold uppercase">Under Resolution</div>
-          <div className="text-3xl font-extrabold text-white mt-1">{inProgressCount}</div>
-          <div className="text-xs text-[#34b7f1] mt-1">Field teams dispatched</div>
+          <div className="text-xs text-muted-foreground font-semibold uppercase">Under Resolution</div>
+          <div className="text-3xl font-extrabold text-foreground mt-1">{inProgressCount}</div>
+          <div className="text-xs text-primary mt-1">Field teams dispatched</div>
         </BorderGlowCard>
 
         <BorderGlowCard className="p-5">
-          <div className="text-xs text-[#8696a0] font-semibold uppercase">Resolved Complaints</div>
-          <div className="text-3xl font-extrabold text-white mt-1">{resolvedCount}</div>
-          <div className="text-xs text-[#25d366] mt-1">Qualifying towards citizen medals</div>
+          <div className="text-xs text-muted-foreground font-semibold uppercase">Resolved Complaints</div>
+          <div className="text-3xl font-extrabold text-foreground mt-1">{resolvedCount}</div>
+          <div className="text-xs text-primary mt-1">Qualifying towards citizen medals</div>
         </BorderGlowCard>
 
         <BorderGlowCard className="p-5">
-          <div className="text-xs text-[#8696a0] font-semibold uppercase">Pickup Requests</div>
-          <div className="text-3xl font-extrabold text-white mt-1">{pickups.length}</div>
-          <div className="text-xs text-[#25d366] mt-1">Doorstep collection requests</div>
+          <div className="text-xs text-muted-foreground font-semibold uppercase">Pickup Requests</div>
+          <div className="text-3xl font-extrabold text-foreground mt-1">{pickups.length}</div>
+          <div className="text-xs text-primary mt-1">Doorstep collection requests</div>
         </BorderGlowCard>
       </div>
 
       {/* Waste Hotspots Detection */}
       <div className="space-y-4">
-        <h2 className="text-xl font-bold text-white flex items-center gap-2">
-          <Flame className="w-5 h-5 text-amber-400" /> Waste Analytics & High Concentration Hotspots
+        <h2 className="text-xl font-bold text-foreground flex items-center gap-2">
+          <Flame className="w-5 h-5 text-accent" /> Waste Analytics & High Concentration Hotspots
         </h2>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
           {hotspots.map((hs, idx) => (
             <BorderGlowCard key={idx} className="p-5 space-y-2">
               <div className="flex items-center justify-between">
-                <span className="text-xs font-bold text-amber-400 flex items-center gap-1">
+                <span className="text-xs font-bold text-accent flex items-center gap-1">
                   <MapPin className="w-3.5 h-3.5" /> {hs.area}
                 </span>
-                <span className="px-2 py-0.5 rounded bg-rose-500/20 text-rose-300 text-[10px] font-bold">
+                <span className="px-2 py-0.5 rounded bg-destructive/20 text-destructive text-[10px] font-bold">
                   {hs.severity} Hotspot
                 </span>
               </div>
-              <div className="text-2xl font-extrabold text-white">{hs.complaintCount} Complaints</div>
-              <div className="text-xs text-[#8696a0]">Primary Concentration: {hs.primaryIssue}</div>
+              <div className="text-2xl font-extrabold text-foreground">{hs.complaintCount} Complaints</div>
+              <div className="text-xs text-muted-foreground">Primary Concentration: {hs.primaryIssue}</div>
             </BorderGlowCard>
           ))}
         </div>
@@ -221,13 +221,13 @@ export const AdminDashboardPage = () => {
 
       {/* Complaints Queue & Action Table */}
       <div className="space-y-4">
-        <h2 className="text-xl font-bold text-white flex items-center gap-2">
-          <FileText className="w-5 h-5 text-[#25d366]" /> Municipal Complaint Management Queue
+        <h2 className="text-xl font-bold text-foreground flex items-center gap-2">
+          <FileText className="w-5 h-5 text-primary" /> Municipal Complaint Management Queue
         </h2>
 
-        <div className="overflow-x-auto rounded-2xl border border-[#2a3942] glass-panel">
-          <table className="w-full text-left text-xs text-[#8696a0]">
-            <thead className="bg-[#111b21] text-[#25d366] uppercase tracking-wider text-[11px] font-semibold border-b border-[#2a3942]">
+        <div className="overflow-x-auto rounded-2xl border border-border glass-panel">
+          <table className="w-full text-left text-xs text-muted-foreground">
+            <thead className="bg-muted/60 text-primary uppercase tracking-wider text-[11px] font-semibold border-b border-border">
               <tr>
                 <th className="p-4">Report ID</th>
                 <th className="p-4">Citizen</th>
@@ -238,25 +238,25 @@ export const AdminDashboardPage = () => {
                 <th className="p-4 text-right">Action</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-[#2a3942]">
+            <tbody className="divide-y divide-border">
               {complaints.map((cmp) => (
-                <tr key={cmp.id} className="hover:bg-[#1f2c34]/50 transition-colors">
-                  <td className="p-4 font-mono font-bold text-[#25d366]">{cmp.id}</td>
-                  <td className="p-4 font-medium text-white">{cmp.userName}</td>
+                <tr key={cmp.id} className="hover:bg-muted/40 transition-colors">
+                  <td className="p-4 font-mono font-bold text-primary">{cmp.id}</td>
+                  <td className="p-4 font-medium text-foreground">{cmp.userName}</td>
                   <td className="p-4">
-                    <div className="font-semibold text-[#e9edef]">{cmp.issueType}</div>
-                    <div className="text-[11px] text-[#8696a0]">{cmp.wasteType}</div>
+                    <div className="font-semibold text-foreground">{cmp.issueType}</div>
+                    <div className="text-[11px] text-muted-foreground">{cmp.wasteType}</div>
                   </td>
                   <td className="p-4 max-w-xs truncate">{cmp.location}</td>
-                  <td className="p-4 font-semibold text-amber-300">{cmp.severity}</td>
+                  <td className="p-4 font-semibold text-accent">{cmp.severity}</td>
                   <td className="p-4">
                     <span
                       className={`px-2.5 py-1 rounded-full text-[11px] font-bold ${
                         cmp.status === 'Resolved'
-                          ? 'bg-[#12332a] text-[#25d366] border border-[#00a884]/40'
+                          ? 'bg-secondary text-primary border border-primary/40'
                           : cmp.status === 'Rejected'
-                          ? 'bg-rose-500/20 text-rose-300 border border-rose-500/40'
-                          : 'bg-amber-500/20 text-amber-300 border border-amber-500/40'
+                          ? 'bg-destructive/20 text-destructive border border-destructive/40'
+                          : 'bg-accent/20 text-accent border border-accent/40'
                       }`}
                     >
                       {cmp.status}
@@ -267,7 +267,7 @@ export const AdminDashboardPage = () => {
                       whileHover={{ scale: 1.05 }}
                       whileTap={{ scale: 0.95 }}
                       onClick={() => handleOpenStatusModal(cmp)}
-                      className="px-3 py-1.5 rounded-lg bg-[#00a884] hover:bg-[#00a884]/90 text-[#111b21] font-bold text-xs shadow"
+                      className="px-3 py-1.5 rounded-lg bg-primary hover:bg-primary/90 text-primary-foreground font-bold text-xs shadow"
                     >
                       Update Status
                     </motion.button>
@@ -281,36 +281,36 @@ export const AdminDashboardPage = () => {
 
       {/* Pickup Requests Queue */}
       <div className="space-y-4">
-        <h2 className="text-xl font-bold text-white flex items-center gap-2">
-          <Truck className="w-5 h-5 text-[#25d366]" /> Doorstep Pickup Dispatch Queue
+        <h2 className="text-xl font-bold text-foreground flex items-center gap-2">
+          <Truck className="w-5 h-5 text-primary" /> Doorstep Pickup Dispatch Queue
         </h2>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {pickups.map((pu) => (
             <BorderGlowCard key={pu.id} className="p-4 space-y-3">
               <div className="flex items-center justify-between">
-                <span className="font-mono font-bold text-[#25d366] text-sm">{pu.id} • {pu.userName}</span>
-                <span className="px-2.5 py-0.5 rounded-full text-xs font-bold bg-[#12332a] text-[#25d366] border border-[#00a884]/30">
+                <span className="font-mono font-bold text-primary text-sm">{pu.id} • {pu.userName}</span>
+                <span className="px-2.5 py-0.5 rounded-full text-xs font-bold bg-secondary text-primary border border-primary/30">
                   {pu.status}
                 </span>
               </div>
 
-              <div className="text-xs text-[#e9edef]">
+              <div className="text-xs text-foreground">
                 <div><strong>Category:</strong> {pu.wasteType}</div>
                 <div><strong>Scheduled Date:</strong> {pu.preferredDate} ({pu.preferredTime})</div>
                 <div><strong>Address:</strong> {pu.address}</div>
               </div>
 
-              <div className="flex gap-2 pt-2 border-t border-[#2a3942]">
+              <div className="flex gap-2 pt-2 border-t border-border">
                 <button
                   onClick={() => handleUpdatePickupStatus(pu.id, 'Scheduled')}
-                  className="px-3 py-1 rounded bg-[#00a884]/30 hover:bg-[#00a884]/50 text-[#25d366] border border-[#00a884]/40 text-xs font-semibold"
+                  className="px-3 py-1 rounded bg-secondary text-primary border border-primary/40 text-xs font-semibold"
                 >
                   Mark Scheduled
                 </button>
                 <button
                   onClick={() => handleUpdatePickupStatus(pu.id, 'Collected')}
-                  className="px-3 py-1 rounded bg-[#00a884] hover:bg-[#00a884]/90 text-[#111b21] text-xs font-bold"
+                  className="px-3 py-1 rounded bg-primary hover:bg-primary/90 text-primary-foreground text-xs font-bold"
                 >
                   Mark Collected
                 </button>
@@ -323,7 +323,7 @@ export const AdminDashboardPage = () => {
       {/* Status Update Modal with Framer Motion */}
       <AnimatePresence>
         {selectedComplaint && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/75 backdrop-blur-sm">
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-background/80 backdrop-blur-sm">
             <motion.div
               initial={{ opacity: 0, scale: 0.95, y: 10 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
@@ -331,23 +331,23 @@ export const AdminDashboardPage = () => {
               transition={{ duration: 0.2 }}
               className="max-w-md w-full"
             >
-              <BorderGlowCard className="p-6 space-y-5 bg-[#1f2c34]">
-                <div className="flex items-center justify-between border-b border-[#2a3942] pb-3">
-                  <h3 className="text-lg font-bold text-white">Update Status for {selectedComplaint.id}</h3>
-                  <button onClick={() => setSelectedComplaint(null)} className="text-[#8696a0] hover:text-white">
+              <BorderGlowCard className="p-6 space-y-5">
+                <div className="flex items-center justify-between border-b border-border pb-3">
+                  <h3 className="text-lg font-bold text-foreground">Update Status for {selectedComplaint.id}</h3>
+                  <button onClick={() => setSelectedComplaint(null)} className="text-muted-foreground hover:text-foreground">
                     ✕
                   </button>
                 </div>
 
                 <div className="space-y-4 text-xs">
                   <div>
-                    <label className="block font-semibold text-[#8696a0] uppercase tracking-wider mb-1">
+                    <label className="block font-semibold text-muted-foreground uppercase tracking-wider mb-1">
                       Select New Lifecycle Status *
                     </label>
                     <select
                       value={newStatus}
                       onChange={(e) => setNewStatus(e.target.value)}
-                      className="w-full px-4 py-2.5 rounded-xl bg-[#111b21] border border-[#2a3942] text-white text-sm focus:outline-none focus:border-[#00a884]"
+                      className="w-full px-4 py-2.5 rounded-xl bg-muted/50 border border-border text-foreground text-sm focus:outline-none focus:border-primary"
                     >
                       <option value="Pending">Pending</option>
                       <option value="Under Review">Under Review</option>
@@ -359,7 +359,7 @@ export const AdminDashboardPage = () => {
                   </div>
 
                   <div>
-                    <label className="block font-semibold text-[#8696a0] uppercase tracking-wider mb-1">
+                    <label className="block font-semibold text-muted-foreground uppercase tracking-wider mb-1">
                       Resolution Notes / Action Dispatched *
                     </label>
                     <textarea
@@ -367,11 +367,11 @@ export const AdminDashboardPage = () => {
                       onChange={(e) => setResolutionNotes(e.target.value)}
                       placeholder="Municipal truck #ND-04 assigned to clear area..."
                       rows={3}
-                      className="w-full px-4 py-2.5 rounded-xl bg-[#111b21] border border-[#2a3942] text-white text-sm focus:outline-none focus:border-[#00a884]"
+                      className="w-full px-4 py-2.5 rounded-xl bg-muted/50 border border-border text-foreground text-sm focus:outline-none focus:border-primary"
                     />
                   </div>
 
-                  <div className="p-3 rounded-xl bg-[#111b21] border border-[#2a3942] text-[11px] text-[#8696a0]">
+                  <div className="p-3 rounded-xl bg-muted/40 border border-border text-[11px] text-muted-foreground">
                     📱 <strong>Automatic SMS Dispatch:</strong> Saving this update will automatically send an SMS event notification to citizen {selectedComplaint.userPhone}.
                   </div>
 
@@ -379,7 +379,7 @@ export const AdminDashboardPage = () => {
                     <button
                       type="button"
                       onClick={() => setSelectedComplaint(null)}
-                      className="px-4 py-2 rounded-xl glass-panel text-[#e9edef] hover:bg-[#1f2c34] text-xs font-semibold"
+                      className="px-4 py-2 rounded-xl border border-border text-foreground hover:bg-muted text-xs font-semibold"
                     >
                       Cancel
                     </button>
@@ -389,7 +389,7 @@ export const AdminDashboardPage = () => {
                       type="button"
                       onClick={handleUpdateStatus}
                       disabled={updating}
-                      className="px-6 py-2.5 rounded-xl bg-gradient-to-r from-[#00a884] to-[#25d366] text-[#111b21] font-bold text-xs shadow-lg"
+                      className="px-6 py-2.5 rounded-xl bg-primary hover:bg-primary/90 text-primary-foreground font-bold text-xs shadow-lg"
                     >
                       {updating ? 'Updating...' : 'Save & Trigger SMS'}
                     </motion.button>

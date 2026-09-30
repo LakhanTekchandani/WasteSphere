@@ -54,7 +54,7 @@ export function AppContent() {
   const location = useLocation();
 
   return (
-    <div className="min-h-screen bg-[#0b141a] text-[#e9edef] flex flex-col selection:bg-[#00a884]/30 selection:text-[#25d366]">
+    <div className="min-h-screen bg-background text-foreground flex flex-col">
       <GlowCursor />
       <Navbar />
       <main className="flex-grow">

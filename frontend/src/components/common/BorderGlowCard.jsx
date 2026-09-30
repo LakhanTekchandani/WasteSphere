@@ -12,13 +12,13 @@ export const BorderGlowCard = ({ children, className = '', glowOnHover = true, a
     >
       {/* Background Glow Layer */}
       <div
-        className={`absolute -inset-0.5 rounded-2xl bg-gradient-to-r from-[#00a884]/30 via-[#25d366]/20 to-[#128c7e]/30 opacity-0 transition duration-500 blur-sm pointer-events-none ${
+        className={`absolute -inset-0.5 rounded-2xl bg-gradient-to-r from-primary/30 via-accent/20 to-primary/30 opacity-0 transition duration-500 blur-sm pointer-events-none ${
           glowOnHover ? 'group-hover:opacity-100' : ''
         } ${activeGlow ? 'opacity-80' : ''}`}
       />
 
       {/* Main Card Content */}
-      <div className="relative rounded-2xl bg-[#1f2c34]/85 backdrop-blur-md border border-[#2a3942] p-6 h-full transition duration-300 group-hover:border-[#00a884]/50 shadow-md">
+      <div className="relative rounded-2xl bg-card backdrop-blur-md border border-border p-6 h-full transition duration-300 group-hover:border-primary/50 shadow-md">
         {children}
       </div>
     </motion.div>

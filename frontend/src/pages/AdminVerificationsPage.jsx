@@ -50,12 +50,12 @@ export const AdminVerificationsPage = () => {
   return (
     <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
       <div>
-        <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/30 text-emerald-300 text-xs font-semibold">
-          <UserCheck className="w-4 h-4 text-emerald-400" />
-          <span>PRD MANDATED SECURITY CONTROL</span>
+        <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-secondary border border-primary/30 text-primary text-xs font-semibold">
+          <UserCheck className="w-4 h-4 text-primary" />
+          <span>SECURITY CONTROL</span>
         </div>
-        <h1 className="text-3xl font-extrabold text-white mt-2">Government Officer Verification Workflow</h1>
-        <p className="text-slate-300 text-sm max-w-2xl">
+        <h1 className="text-3xl font-extrabold text-foreground mt-2">Government Officer Verification Workflow</h1>
+        <p className="text-muted-foreground text-sm max-w-2xl">
           Review uploaded government ID proof photos before granting administrative dashboard access. Unverified accounts remain restricted.
         </p>
       </div>
@@ -67,13 +67,13 @@ export const AdminVerificationsPage = () => {
               {/* ID Image */}
               <div className="md:col-span-4">
                 <div className="space-y-1">
-                  <span className="text-[11px] text-slate-400 font-semibold uppercase block">
+                  <span className="text-[11px] text-muted-foreground font-semibold uppercase block">
                     Government ID / Badge Proof:
                   </span>
                   <img
                     src={ver.officerIdPhoto}
                     alt={ver.name}
-                    className="w-full h-40 object-cover rounded-xl border border-emerald-500/30 shadow-md"
+                    className="w-full h-40 object-cover rounded-xl border border-primary/30 shadow-md"
                   />
                 </div>
               </div>
@@ -81,24 +81,24 @@ export const AdminVerificationsPage = () => {
               {/* Info */}
               <div className="md:col-span-5 space-y-2">
                 <div className="flex items-center gap-2">
-                  <span className="font-mono text-xs font-bold text-emerald-400">{ver.id}</span>
+                  <span className="font-mono text-xs font-bold text-primary">{ver.id}</span>
                   <span
                     className={`px-2.5 py-0.5 rounded-full text-xs font-bold ${
                       ver.status === 'approved'
-                        ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/40'
+                        ? 'bg-secondary text-primary border border-primary/40'
                         : ver.status === 'rejected'
-                        ? 'bg-rose-500/20 text-rose-300 border border-rose-500/40'
-                        : 'bg-amber-500/20 text-amber-300 border border-amber-500/40'
+                        ? 'bg-destructive/20 text-destructive border border-destructive/40'
+                        : 'bg-accent/20 text-accent border border-accent/40'
                     }`}
                   >
                     {ver.status.toUpperCase()}
                   </span>
                 </div>
 
-                <h3 className="text-lg font-bold text-white">{ver.name}</h3>
-                <div className="text-xs text-slate-300">Email: <span className="text-emerald-300">{ver.email}</span></div>
-                <div className="text-xs text-slate-300">Phone: <span className="font-mono text-slate-200">{ver.phone}</span></div>
-                <div className="text-[11px] text-slate-500">Submitted: {new Date(ver.submittedAt).toLocaleString()}</div>
+                <h3 className="text-lg font-bold text-foreground">{ver.name}</h3>
+                <div className="text-xs text-muted-foreground">Email: <span className="text-primary">{ver.email}</span></div>
+                <div className="text-xs text-muted-foreground">Phone: <span className="font-mono text-foreground">{ver.phone}</span></div>
+                <div className="text-[11px] text-muted-foreground">Submitted: {new Date(ver.submittedAt).toLocaleString()}</div>
               </div>
 
               {/* Approval Actions */}
@@ -107,19 +107,19 @@ export const AdminVerificationsPage = () => {
                   <>
                     <button
                       onClick={() => handleApprove(ver.id, ver.name)}
-                      className="w-full py-2.5 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-white font-bold text-xs shadow-md flex items-center justify-center gap-1.5"
+                      className="w-full py-2.5 rounded-xl bg-primary hover:bg-primary/90 text-primary-foreground font-bold text-xs shadow-md flex items-center justify-center gap-1.5"
                     >
                       <CheckCircle2 className="w-4 h-4" /> Approve Officer ID
                     </button>
                     <button
                       onClick={() => handleReject(ver.id, ver.name)}
-                      className="w-full py-2.5 rounded-xl bg-rose-500/20 hover:bg-rose-500/30 text-rose-300 border border-rose-500/30 font-bold text-xs flex items-center justify-center gap-1.5"
+                      className="w-full py-2.5 rounded-xl bg-destructive/20 hover:bg-destructive/30 text-destructive border border-destructive/30 font-bold text-xs flex items-center justify-center gap-1.5"
                     >
                       <XCircle className="w-4 h-4" /> Reject Proof
                     </button>
                   </>
                 ) : (
-                  <div className="text-center py-2 px-4 rounded-xl bg-emerald-950/40 border border-emerald-500/20 text-xs font-semibold text-slate-300">
+                  <div className="text-center py-2 px-4 rounded-xl bg-muted/40 border border-border text-xs font-semibold text-muted-foreground">
                     Verification Decision Finalized ({ver.status})
                   </div>
                 )}

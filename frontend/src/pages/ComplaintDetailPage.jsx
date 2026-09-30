@@ -37,7 +37,7 @@ export const ComplaintDetailPage = () => {
   }, [id]);
 
   if (loading) return <LoadingSpinner label="Loading complaint tracker details..." />;
-  if (!complaint) return <div className="text-center py-12 text-[#8696a0]">Complaint record not found.</div>;
+  if (!complaint) return <div className="text-center py-12 text-muted-foreground">Complaint record not found.</div>;
 
   const statuses = ['Pending', 'Under Review', 'Assigned', 'In Progress', 'Resolved'];
   const currentStatusIndex = statuses.indexOf(complaint.status);
@@ -48,35 +48,35 @@ export const ComplaintDetailPage = () => {
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       transition={{ duration: 0.3 }}
-      className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6 bg-[#0b141a]"
+      className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6 bg-background"
     >
       <Link
         to="/complaints"
-        className="inline-flex items-center gap-1.5 text-[#25d366] hover:underline text-xs font-semibold"
+        className="inline-flex items-center gap-1.5 text-accent hover:underline text-xs font-semibold"
       >
         <ArrowLeft className="w-4 h-4" /> Back to Complaint History
       </Link>
 
-      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 border-b border-[#2a3942] pb-4">
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 border-b border-border pb-4">
         <div>
           <div className="flex items-center gap-2">
-            <span className="font-mono font-extrabold text-2xl text-[#25d366]">{complaint.id}</span>
-            <span className="px-3 py-0.5 rounded-full text-xs font-bold bg-[#12332a] text-[#25d366] border border-[#00a884]/40">
+            <span className="font-mono font-extrabold text-2xl text-accent">{complaint.id}</span>
+            <span className="px-3 py-0.5 rounded-full text-xs font-bold bg-secondary text-primary border border-primary/40">
               {complaint.wasteType}
             </span>
           </div>
-          <h1 className="text-xl font-bold text-white mt-1">{complaint.issueType}</h1>
+          <h1 className="text-xl font-bold text-foreground mt-1">{complaint.issueType}</h1>
         </div>
 
         <div className="flex items-center gap-2">
-          <span className="text-xs text-[#8696a0]">Current Status:</span>
+          <span className="text-xs text-muted-foreground">Current Status:</span>
           <span
             className={`px-4 py-1.5 rounded-full text-xs font-extrabold ${
               complaint.status === 'Resolved'
-                ? 'bg-[#12332a] text-[#25d366] border border-[#00a884]'
+                ? 'bg-secondary text-accent border border-primary'
                 : isRejected
-                ? 'bg-[#ea4335]/20 text-[#ea4335] border border-[#ea4335]'
-                : 'bg-amber-500/20 text-amber-300 border border-amber-500'
+                ? 'bg-destructive/20 text-destructive border border-destructive'
+                : 'bg-amber-500/20 text-amber-600 border border-amber-500'
             }`}
           >
             {complaint.status}
@@ -86,13 +86,13 @@ export const ComplaintDetailPage = () => {
 
       {/* Lifecycle Timeline Tracker */}
       <BorderGlowCard className="p-6 space-y-6">
-        <h2 className="text-base font-bold text-white flex items-center gap-2">
-          <Clock className="w-5 h-5 text-[#25d366]" /> Municipal Lifecycle Tracker
+        <h2 className="text-base font-bold text-foreground flex items-center gap-2">
+          <Clock className="w-5 h-5 text-accent" /> Municipal Lifecycle Tracker
         </h2>
 
         {isRejected ? (
-          <div className="p-4 rounded-xl bg-[#ea4335]/15 border border-[#ea4335]/40 text-[#ea4335] text-xs flex items-center gap-2">
-            <AlertCircle className="w-5 h-5 text-[#ea4335] shrink-0" />
+          <div className="p-4 rounded-xl bg-destructive/15 border border-destructive/40 text-destructive text-xs flex items-center gap-2">
+            <AlertCircle className="w-5 h-5 shrink-0" />
             <span>Complaint marked as Invalid / Out of Scope by Administrator. Excluded from medal count.</span>
           </div>
         ) : (
@@ -106,10 +106,10 @@ export const ComplaintDetailPage = () => {
                   key={st}
                   className={`p-3 rounded-xl border flex flex-col items-center text-center space-y-1 transition-all ${
                     isCurrent
-                      ? 'bg-[#12332a] border-[#25d366] text-[#25d366] shadow-md'
+                      ? 'bg-secondary border-accent text-accent shadow-md'
                       : isPassed
-                      ? 'bg-[#1f2c34] border-[#00a884]/30 text-[#e9edef]'
-                      : 'bg-[#111b21] border-[#2a3942] text-[#8696a0]'
+                      ? 'bg-card border-primary/30 text-foreground'
+                      : 'bg-muted border-border text-muted-foreground'
                   }`}
                 >
                   <div className="w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold border border-current">
@@ -124,11 +124,11 @@ export const ComplaintDetailPage = () => {
 
         {/* Resolution Notes */}
         {complaint.resolutionNotes && (
-          <div className="p-4 rounded-xl bg-[#12332a] border border-[#00a884]/40 space-y-1 text-xs">
-            <span className="font-bold text-[#25d366] flex items-center gap-1.5">
+          <div className="p-4 rounded-xl bg-secondary border border-primary/40 space-y-1 text-xs">
+            <span className="font-bold text-primary flex items-center gap-1.5">
               <Building2 className="w-4 h-4" /> Officer Resolution Note:
             </span>
-            <p className="text-[#e9edef]">{complaint.resolutionNotes}</p>
+            <p className="text-foreground">{complaint.resolutionNotes}</p>
           </div>
         )}
       </BorderGlowCard>
@@ -137,61 +137,61 @@ export const ComplaintDetailPage = () => {
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
         {/* Photo */}
         <BorderGlowCard className="lg:col-span-6 p-5 space-y-3">
-          <h3 className="text-sm font-bold text-white uppercase tracking-wider">Uploaded Evidence Image</h3>
+          <h3 className="text-sm font-bold text-foreground uppercase tracking-wider">Uploaded Evidence Image</h3>
           <img
             src={complaint.photoUrl}
             alt={complaint.issueType}
-            className="w-full h-64 object-cover rounded-xl border border-[#2a3942]"
+            className="w-full h-64 object-cover rounded-xl border border-border"
           />
         </BorderGlowCard>
 
         {/* Info Box */}
         <BorderGlowCard className="lg:col-span-6 p-6 space-y-4 text-xs">
-          <h3 className="text-sm font-bold text-white uppercase tracking-wider border-b border-[#2a3942] pb-2">
+          <h3 className="text-sm font-bold text-foreground uppercase tracking-wider border-b border-border pb-2">
             Report Metadata & AI Audit
           </h3>
 
           <div className="space-y-3">
             <div>
-              <span className="text-[#8696a0] block">AI Detected Waste Suggestion:</span>
-              <span className="font-semibold text-[#25d366] flex items-center gap-1.5 mt-0.5">
-                <Cpu className="w-4 h-4 text-[#25d366]" /> {complaint.aiSuggestedWasteType || complaint.wasteType}
+              <span className="text-muted-foreground block">AI Detected Waste Suggestion:</span>
+              <span className="font-semibold text-accent flex items-center gap-1.5 mt-0.5">
+                <Cpu className="w-4 h-4 text-accent" /> {complaint.aiSuggestedWasteType || complaint.wasteType}
               </span>
             </div>
 
             <div>
-              <span className="text-[#8696a0] block">User Confirmed Category:</span>
-              <span className="font-bold text-white text-sm">{complaint.wasteType}</span>
+              <span className="text-muted-foreground block">User Confirmed Category:</span>
+              <span className="font-bold text-foreground text-sm">{complaint.wasteType}</span>
             </div>
 
             <div>
-              <span className="text-[#8696a0] block">Reported Location:</span>
-              <span className="font-semibold text-[#e9edef] flex items-center gap-1 mt-0.5">
-                <MapPin className="w-4 h-4 text-[#25d366] shrink-0" /> {complaint.location}
+              <span className="text-muted-foreground block">Reported Location:</span>
+              <span className="font-semibold text-foreground flex items-center gap-1 mt-0.5">
+                <MapPin className="w-4 h-4 text-accent shrink-0" /> {complaint.location}
               </span>
             </div>
 
             {complaint.landmark && (
               <div>
-                <span className="text-[#8696a0] block">Landmark:</span>
-                <span className="text-[#e9edef]">{complaint.landmark}</span>
+                <span className="text-muted-foreground block">Landmark:</span>
+                <span className="text-foreground">{complaint.landmark}</span>
               </div>
             )}
 
             <div>
-              <span className="text-[#8696a0] block">Severity Level:</span>
-              <span className="font-semibold text-amber-300">{complaint.severity}</span>
+              <span className="text-muted-foreground block">Severity Level:</span>
+              <span className="font-semibold text-amber-600">{complaint.severity}</span>
             </div>
 
             <div>
-              <span className="text-[#8696a0] block">Description:</span>
-              <span className="text-[#e9edef]">{complaint.description || 'No description provided.'}</span>
+              <span className="text-muted-foreground block">Description:</span>
+              <span className="text-foreground">{complaint.description || 'No description provided.'}</span>
             </div>
 
-            <div className="pt-2 border-t border-[#2a3942]">
-              <span className="text-[#8696a0] block">SMS Event Status:</span>
-              <span className="font-semibold text-[#34b7f1] flex items-center gap-1.5 mt-0.5">
-                <PhoneCall className="w-4 h-4 text-[#34b7f1]" /> SMS Dispatched to {complaint.userPhone}
+            <div className="pt-2 border-t border-border">
+              <span className="text-muted-foreground block">Notification Status:</span>
+              <span className="font-semibold text-primary flex items-center gap-1.5 mt-0.5">
+                <PhoneCall className="w-4 h-4 text-primary" /> Email Dispatched to {complaint.userPhone}
               </span>
             </div>
           </div>

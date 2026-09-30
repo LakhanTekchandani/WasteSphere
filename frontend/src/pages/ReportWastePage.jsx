@@ -131,8 +131,6 @@ export const ReportWastePage = () => {
   };
 
   // ─── EmailJS: fire-and-forget email notification ───────────────────────────
-  // Called AFTER the complaint is saved. Failure is logged only — never surfaces
-  // to the user and never rolls back or re-attempts the complaint submission.
   const sendEmailNotification = async (complaint) => {
     const recipientEmail = user?.email || guestEmail.trim() || '';
     const recipientName  = user?.name  || guestName.trim()  || 'WasteSphere User';
@@ -233,11 +231,11 @@ export const ReportWastePage = () => {
       const res = await api.createComplaint(fields, imageFile);
       setSubmittedComplaint(res.complaint);
 
-      const targetPhone = user?.phone || guestPhone || 'registered mobile';
+      const targetEmail = user?.email || guestEmail;
       showToast(
-        `Report submitted! SMS confirmation sent to ${targetPhone}.`,
-        'sms',
-        'SMS Confirmation Sent 📱'
+        `Report submitted! Confirmation email sent${targetEmail ? ` to ${targetEmail}` : ''}.`,
+        'success',
+        'Email Confirmation Sent 📧'
       );
 
       // Show success FIRST — email runs independently after
@@ -262,31 +260,31 @@ export const ReportWastePage = () => {
         transition={{ duration: 0.3 }}
         className="text-center space-y-2"
       >
-        <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-[#12332a] border border-[#00a884]/40 text-[#25d366] text-xs font-semibold backdrop-blur-md">
-          <Sparkles className="w-4 h-4 text-[#25d366]" />
+        <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-secondary border border-primary/40 text-primary text-xs font-semibold backdrop-blur-md">
+          <Sparkles className="w-4 h-4 text-primary" />
           <span>AI-Assisted Citizen Complaint Portal (Open to Public)</span>
         </div>
-        <h1 className="text-3xl sm:text-4xl font-extrabold text-white">Report Waste Issue</h1>
-        <p className="text-[#8696a0] text-sm max-w-xl mx-auto">
+        <h1 className="text-3xl sm:text-4xl font-extrabold text-foreground">Report Waste Issue</h1>
+        <p className="text-muted-foreground text-sm max-w-xl mx-auto">
           AI detects waste type from your photo. You retain full authority to review, edit, and supply location details before final submission.
         </p>
       </motion.div>
 
       {/* Process Stepper */}
-      <div className="flex items-center justify-between max-w-2xl mx-auto px-4 py-3 glass-panel rounded-2xl border border-[#2a3942] text-xs font-semibold bg-[#1f2c34]/80">
-        <div className={`flex items-center gap-1.5 ${stage >= 1 ? 'text-[#25d366]' : 'text-[#8696a0]'}`}>
+      <div className="flex items-center justify-between max-w-2xl mx-auto px-4 py-3 rounded-2xl border border-border text-xs font-semibold bg-card/80 shadow-sm">
+        <div className={`flex items-center gap-1.5 ${stage >= 1 ? 'text-primary font-bold' : 'text-muted-foreground'}`}>
           <Camera className="w-4 h-4" /> 1. Upload
         </div>
-        <span className="text-[#8696a0]">→</span>
-        <div className={`flex items-center gap-1.5 ${stage >= 2 ? 'text-[#25d366]' : 'text-[#8696a0]'}`}>
+        <span className="text-muted-foreground">→</span>
+        <div className={`flex items-center gap-1.5 ${stage >= 2 ? 'text-primary font-bold' : 'text-muted-foreground'}`}>
           <Cpu className="w-4 h-4" /> 2. AI Recognition
         </div>
-        <span className="text-[#8696a0]">→</span>
-        <div className={`flex items-center gap-1.5 ${stage >= 3 ? 'text-[#25d366]' : 'text-[#8696a0]'}`}>
+        <span className="text-muted-foreground">→</span>
+        <div className={`flex items-center gap-1.5 ${stage >= 3 ? 'text-primary font-bold' : 'text-muted-foreground'}`}>
           <Edit3 className="w-4 h-4" /> 3. Review & Edit
         </div>
-        <span className="text-[#8696a0]">→</span>
-        <div className={`flex items-center gap-1.5 ${stage >= 4 ? 'text-[#25d366]' : 'text-[#8696a0]'}`}>
+        <span className="text-muted-foreground">→</span>
+        <div className={`flex items-center gap-1.5 ${stage >= 4 ? 'text-primary font-bold' : 'text-muted-foreground'}`}>
           <CheckCircle2 className="w-4 h-4" /> 4. Submit
         </div>
       </div>
@@ -302,24 +300,24 @@ export const ReportWastePage = () => {
             transition={{ duration: 0.25 }}
           >
             <BorderGlowCard className="p-8 space-y-6">
-              <h2 className="text-xl font-bold text-white flex items-center gap-2">
-                <Camera className="w-5 h-5 text-[#25d366]" /> Step 1: Upload Photographic Evidence
+              <h2 className="text-xl font-bold text-foreground flex items-center gap-2">
+                <Camera className="w-5 h-5 text-primary" /> Step 1: Upload Photographic Evidence
               </h2>
 
-              <div className="border-2 border-dashed border-[#2a3942] rounded-2xl p-8 text-center space-y-4 bg-[#111b21]/60 hover:border-[#00a884]/60 transition-colors">
+              <div className="border-2 border-dashed border-border rounded-2xl p-8 text-center space-y-4 bg-muted/30 hover:border-primary/60 transition-colors">
                 {imagePreview ? (
                   <div className="space-y-4">
                     <img
                       src={imagePreview}
                       alt="Waste Evidence Preview"
-                      className="max-h-64 mx-auto rounded-xl shadow-lg border border-[#2a3942] object-cover"
+                      className="max-h-64 mx-auto rounded-xl shadow-lg border border-border object-cover"
                     />
                     <div className="flex justify-center gap-3">
                       <motion.button
                         whileHover={{ scale: 1.02 }}
                         whileTap={{ scale: 0.98 }}
                         onClick={() => setImagePreview('')}
-                        className="px-4 py-2 rounded-xl glass-panel text-[#e9edef] hover:bg-[#1f2c34] text-xs font-semibold"
+                        className="px-4 py-2 rounded-xl border border-border text-foreground hover:bg-muted text-xs font-semibold"
                       >
                         Change Image
                       </motion.button>
@@ -327,7 +325,7 @@ export const ReportWastePage = () => {
                         whileHover={{ scale: 1.02 }}
                         whileTap={{ scale: 0.98 }}
                         onClick={triggerAiRecognition}
-                        className="px-6 py-2.5 rounded-xl bg-gradient-to-r from-[#00a884] to-[#25d366] text-[#111b21] font-bold text-xs shadow-lg shadow-[#00a884]/20 flex items-center gap-2"
+                        className="px-6 py-2.5 rounded-xl bg-primary hover:bg-primary/90 text-primary-foreground font-bold text-xs shadow-lg flex items-center gap-2"
                       >
                         Analyze with AI <ArrowRight className="w-4 h-4" />
                       </motion.button>
@@ -335,14 +333,14 @@ export const ReportWastePage = () => {
                   </div>
                 ) : (
                   <div className="space-y-4">
-                    <div className="w-16 h-16 rounded-full bg-[#12332a] text-[#25d366] flex items-center justify-center mx-auto border border-[#00a884]/30">
+                    <div className="w-16 h-16 rounded-full bg-secondary text-primary flex items-center justify-center mx-auto border border-primary/30">
                       <Upload className="w-8 h-8" />
                     </div>
                     <div>
-                      <p className="text-sm font-semibold text-[#e9edef]">Drag & drop photo here or click to browse</p>
-                      <p className="text-xs text-[#8696a0] mt-1">Supports JPG, PNG, WEBP up to 10MB</p>
+                      <p className="text-sm font-semibold text-foreground">Drag & drop photo here or click to browse</p>
+                      <p className="text-xs text-muted-foreground mt-1">Supports JPG, PNG, WEBP up to 10MB</p>
                     </div>
-                    <label className="inline-block px-6 py-3 rounded-xl bg-[#00a884] hover:bg-[#00a884]/90 text-[#111b21] text-xs font-bold cursor-pointer shadow-md transition-transform hover:scale-105">
+                    <label className="inline-block px-6 py-3 rounded-xl bg-primary hover:bg-primary/90 text-primary-foreground text-xs font-bold cursor-pointer shadow-md transition-transform hover:scale-105">
                       Browse Device Photos
                       <input type="file" accept="image/*" onChange={handleFileUpload} className="hidden" />
                     </label>
@@ -352,7 +350,7 @@ export const ReportWastePage = () => {
 
               {/* Preset Demo Samples */}
               <div className="space-y-2">
-                <span className="text-xs font-semibold text-[#8696a0] uppercase tracking-wider">
+                <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
                   Or pick a sample hackathon evidence photo:
                 </span>
                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
@@ -364,12 +362,12 @@ export const ReportWastePage = () => {
                       onClick={() => handleImageSelect(img.url)}
                       className={`p-2 rounded-xl text-left transition-all border ${
                         imagePreview === img.url
-                          ? 'border-[#25d366] bg-[#12332a]'
-                          : 'border-[#2a3942] bg-[#111b21]/70 hover:border-[#00a884]/40'
+                          ? 'border-primary bg-secondary'
+                          : 'border-border bg-card hover:border-primary/40'
                       }`}
                     >
                       <img src={img.url} alt={img.label} className="w-full h-20 object-cover rounded-lg mb-1.5" />
-                      <span className="text-[11px] font-semibold text-[#e9edef] line-clamp-1">{img.label}</span>
+                      <span className="text-[11px] font-semibold text-foreground line-clamp-1">{img.label}</span>
                     </motion.button>
                   ))}
                 </div>
@@ -390,8 +388,8 @@ export const ReportWastePage = () => {
             <BorderGlowCard className="p-12 text-center space-y-6">
               <LoadingSpinner label="AI Computer Vision Engine is analyzing waste patterns..." size="lg" />
               <div className="max-w-md mx-auto space-y-2">
-                <p className="text-sm text-[#25d366] font-semibold">Running Groq AI / Gemini Vision Model...</p>
-                <p className="text-xs text-[#8696a0]">
+                <p className="text-sm text-primary font-semibold">Running Groq AI / Gemini Vision Model...</p>
+                <p className="text-xs text-muted-foreground">
                   Detecting category features (Polyethylene, Organic Pulp, Printed Circuit Boards, Glass).
                 </p>
               </div>
@@ -410,41 +408,41 @@ export const ReportWastePage = () => {
             className="space-y-6"
           >
             {/* AI Banner */}
-            <div className="p-4 rounded-2xl bg-[#12332a] border border-[#00a884]/40 flex items-start gap-3">
-              <Sparkles className="w-5 h-5 text-[#25d366] shrink-0 mt-0.5" />
+            <div className="p-4 rounded-2xl bg-secondary border border-primary/40 flex items-start gap-3">
+              <Sparkles className="w-5 h-5 text-primary shrink-0 mt-0.5" />
               <div className="space-y-1 text-xs">
-                <div className="font-bold text-[#25d366] flex items-center gap-2">
+                <div className="font-bold text-primary flex items-center gap-2">
                   <span>AI Suggested Category: {aiSuggestedCategory}</span>
-                  <span className="px-2 py-0.5 rounded bg-[#075e54] text-[10px] text-white font-mono">
+                  <span className="px-2 py-0.5 rounded bg-primary text-[10px] text-primary-foreground font-mono">
                     {(aiConfidence * 100).toFixed(0)}% Confidence ({aiProvider})
                   </span>
                 </div>
-                <p className="text-[#8696a0] leading-normal">
+                <p className="text-muted-foreground leading-normal">
                   <strong>User Review Required:</strong> AI is not the final authority. You can edit the waste type and provide exact location details below.
                 </p>
               </div>
             </div>
 
             <BorderGlowCard className="p-8 space-y-6">
-              <h2 className="text-xl font-bold text-white flex items-center gap-2">
-                <Edit3 className="w-5 h-5 text-[#25d366]" /> Step 3: Confirm & Complete Complaint Details
+              <h2 className="text-xl font-bold text-foreground flex items-center gap-2">
+                <Edit3 className="w-5 h-5 text-primary" /> Step 3: Confirm & Complete Complaint Details
               </h2>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 {/* Photo Preview Thumbnail */}
                 <div className="space-y-2">
-                  <label className="block text-xs font-semibold text-[#8696a0] uppercase tracking-wider">
+                  <label className="block text-xs font-semibold text-muted-foreground uppercase tracking-wider">
                     Uploaded Evidence Photo
                   </label>
                   <img
                     src={imagePreview}
                     alt="Report evidence"
-                    className="w-full h-48 object-cover rounded-xl border border-[#2a3942]"
+                    className="w-full h-48 object-cover rounded-xl border border-border"
                   />
                   <button
                     type="button"
                     onClick={() => setStage(1)}
-                    className="text-xs text-[#25d366] hover:underline flex items-center gap-1 font-semibold"
+                    className="text-xs text-primary hover:underline flex items-center gap-1 font-semibold"
                   >
                     <RefreshCw className="w-3.5 h-3.5" /> Re-upload Image
                   </button>
@@ -453,13 +451,13 @@ export const ReportWastePage = () => {
                 {/* Waste Type Category */}
                 <div className="space-y-4">
                   <div>
-                    <label className="block text-xs font-semibold text-[#8696a0] uppercase tracking-wider mb-1">
+                    <label className="block text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-1">
                       Waste Category (AI Suggested & User Confirmed) *
                     </label>
                     <select
                       value={wasteType}
                       onChange={(e) => setWasteType(e.target.value)}
-                      className="w-full px-4 py-2.5 rounded-xl bg-[#111b21] border border-[#2a3942] text-white text-sm focus:outline-none focus:border-[#00a884]"
+                      className="w-full px-4 py-2.5 rounded-xl bg-muted/50 border border-border text-foreground text-sm focus:outline-none focus:border-primary"
                     >
                       <option value="Plastic Waste">Plastic Waste</option>
                       <option value="Organic / Wet Waste">Organic / Wet Waste</option>
@@ -473,13 +471,13 @@ export const ReportWastePage = () => {
                   </div>
 
                   <div>
-                    <label className="block text-xs font-semibold text-[#8696a0] uppercase tracking-wider mb-1">
+                    <label className="block text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-1">
                       Issue Category *
                     </label>
                     <select
                       value={issueType}
                       onChange={(e) => setIssueType(e.target.value)}
-                      className="w-full px-4 py-2.5 rounded-xl bg-[#111b21] border border-[#2a3942] text-white text-sm focus:outline-none focus:border-[#00a884]"
+                      className="w-full px-4 py-2.5 rounded-xl bg-muted/50 border border-border text-foreground text-sm focus:outline-none focus:border-primary"
                     >
                       <option value="Overflowing Garbage Bin">Overflowing Garbage Bin</option>
                       <option value="Garbage on Road / Public Area">Garbage on Road / Public Area</option>
@@ -492,7 +490,7 @@ export const ReportWastePage = () => {
                   </div>
 
                   <div>
-                    <label className="block text-xs font-semibold text-[#8696a0] uppercase tracking-wider mb-1">
+                    <label className="block text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-1">
                       Severity Level *
                     </label>
                     <div className="grid grid-cols-3 gap-2">
@@ -504,9 +502,9 @@ export const ReportWastePage = () => {
                           className={`py-2 rounded-xl text-xs font-semibold border transition-all ${
                             severity === s
                               ? s === 'High'
-                                ? 'bg-[#ea4335]/20 text-[#ea4335] border-[#ea4335]'
-                                : 'bg-[#12332a] text-[#25d366] border-[#00a884]'
-                              : 'bg-[#111b21] border-[#2a3942] text-[#8696a0]'
+                                ? 'bg-destructive/20 text-destructive border-destructive'
+                                : 'bg-secondary text-primary border-primary'
+                              : 'bg-muted/50 border-border text-muted-foreground'
                           }`}
                         >
                           {s}
@@ -518,34 +516,34 @@ export const ReportWastePage = () => {
               </div>
 
               {/* Location & Landmark Section */}
-              <div className="space-y-4 pt-4 border-t border-[#2a3942]">
+              <div className="space-y-4 pt-4 border-t border-border">
                 <div className="flex items-center justify-between">
-                  <label className="block text-xs font-semibold text-[#8696a0] uppercase tracking-wider">
+                  <label className="block text-xs font-semibold text-muted-foreground uppercase tracking-wider">
                     Location & Address Reference *
                   </label>
                   <button
                     type="button"
                     onClick={handleDetectGPS}
-                    className="px-3 py-1 rounded-lg bg-[#12332a] text-[#25d366] border border-[#00a884]/30 text-xs font-semibold flex items-center gap-1.5 hover:bg-[#00a884]/20"
+                    className="px-3 py-1 rounded-lg bg-secondary text-primary border border-primary/30 text-xs font-semibold flex items-center gap-1.5 hover:bg-primary/20"
                   >
-                    <Navigation className="w-3.5 h-3.5 text-[#25d366]" /> Detect Current Location
+                    <Navigation className="w-3.5 h-3.5 text-primary" /> Detect Current Location
                   </button>
                 </div>
                 <div className="relative">
-                  <MapPin className="w-5 h-5 absolute left-3.5 top-3 text-[#8696a0]" />
+                  <MapPin className="w-5 h-5 absolute left-3.5 top-3 text-muted-foreground" />
                   <input
                     type="text"
                     value={location}
                     onChange={(e) => setLocation(e.target.value)}
                     placeholder="12-B Park Street, Sector 4, New Delhi"
-                    className="w-full pl-11 pr-4 py-2.5 rounded-xl bg-[#111b21] border border-[#2a3942] text-white text-sm focus:outline-none focus:border-[#00a884]"
+                    className="w-full pl-11 pr-4 py-2.5 rounded-xl bg-muted/50 border border-border text-foreground text-sm focus:outline-none focus:border-primary"
                     required
                   />
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-xs font-semibold text-[#8696a0] uppercase tracking-wider mb-1">
+                    <label className="block text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-1">
                       Nearby Landmark (Optional)
                     </label>
                     <input
@@ -553,12 +551,12 @@ export const ReportWastePage = () => {
                       value={landmark}
                       onChange={(e) => setLandmark(e.target.value)}
                       placeholder="Opposite City Metro Gate 3"
-                      className="w-full px-4 py-2.5 rounded-xl bg-[#111b21] border border-[#2a3942] text-white text-sm focus:outline-none focus:border-[#00a884]"
+                      className="w-full px-4 py-2.5 rounded-xl bg-muted/50 border border-border text-foreground text-sm focus:outline-none focus:border-primary"
                     />
                   </div>
 
                   <div>
-                    <label className="block text-xs font-semibold text-[#8696a0] uppercase tracking-wider mb-1">
+                    <label className="block text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-1">
                       Issue Description / Extra Details
                     </label>
                     <input
@@ -566,7 +564,7 @@ export const ReportWastePage = () => {
                       value={description}
                       onChange={(e) => setDescription(e.target.value)}
                       placeholder="Bin overflowing onto sidewalk since morning..."
-                      className="w-full px-4 py-2.5 rounded-xl bg-[#111b21] border border-[#2a3942] text-white text-sm focus:outline-none focus:border-[#00a884]"
+                      className="w-full px-4 py-2.5 rounded-xl bg-muted/50 border border-border text-foreground text-sm focus:outline-none focus:border-primary"
                     />
                   </div>
                 </div>
@@ -574,42 +572,42 @@ export const ReportWastePage = () => {
 
               {/* Guest Information Section (If Not Logged In) */}
               {!user && (
-                <div className="space-y-4 pt-4 border-t border-[#2a3942] bg-[#12332a]/30 p-4 rounded-xl border">
-                  <div className="flex items-center gap-2 text-sm font-bold text-[#25d366]">
+                <div className="space-y-4 pt-4 border-t border-border bg-secondary/30 p-4 rounded-xl border border-border">
+                  <div className="flex items-center gap-2 text-sm font-bold text-primary">
                     <User className="w-4 h-4" /> Guest Reporter Details (No Signup Required)
                   </div>
-                  <p className="text-xs text-[#8696a0]">
+                  <p className="text-xs text-muted-foreground">
                     Provide your contact details so the municipal officer can dispatch SMS alerts to you regarding cleanup progress.
                   </p>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
-                      <label className="block text-xs font-semibold text-[#8696a0] uppercase tracking-wider mb-1">
+                      <label className="block text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-1">
                         Your Full Name *
                       </label>
                       <div className="relative">
-                        <User className="w-4 h-4 absolute left-3 top-3 text-[#8696a0]" />
+                        <User className="w-4 h-4 absolute left-3 top-3 text-muted-foreground" />
                         <input
                           type="text"
                           value={guestName}
                           onChange={(e) => setGuestName(e.target.value)}
                           placeholder="e.g. Rahul Sharma"
-                          className="w-full pl-9 pr-3 py-2 rounded-xl bg-[#111b21] border border-[#2a3942] text-white text-sm focus:outline-none focus:border-[#00a884]"
+                          className="w-full pl-9 pr-3 py-2 rounded-xl bg-muted/50 border border-border text-foreground text-sm focus:outline-none focus:border-primary"
                         />
                       </div>
                     </div>
 
                     <div>
-                      <label className="block text-xs font-semibold text-[#8696a0] uppercase tracking-wider mb-1">
+                      <label className="block text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-1">
                         Mobile Phone (For SMS Updates) *
                       </label>
                       <div className="relative">
-                        <Phone className="w-4 h-4 absolute left-3 top-3 text-[#8696a0]" />
+                        <Phone className="w-4 h-4 absolute left-3 top-3 text-muted-foreground" />
                         <input
                           type="tel"
                           value={guestPhone}
                           onChange={(e) => setGuestPhone(e.target.value)}
                           placeholder="e.g. 9876543210"
-                          className="w-full pl-9 pr-3 py-2 rounded-xl bg-[#111b21] border border-[#2a3942] text-white text-sm focus:outline-none focus:border-[#00a884]"
+                          className="w-full pl-9 pr-3 py-2 rounded-xl bg-muted/50 border border-border text-foreground text-sm focus:outline-none focus:border-primary"
                         />
                       </div>
                     </div>
@@ -618,13 +616,13 @@ export const ReportWastePage = () => {
               )}
 
               {/* Actions */}
-              <div className="flex items-center justify-between pt-6 border-t border-[#2a3942]">
+              <div className="flex items-center justify-between pt-6 border-t border-border">
                 <motion.button
                   whileHover={{ scale: 1.02 }}
                   whileTap={{ scale: 0.98 }}
                   type="button"
                   onClick={() => setStage(1)}
-                  className="px-5 py-2.5 rounded-xl glass-panel text-[#e9edef] hover:bg-[#1f2c34] text-sm font-semibold"
+                  className="px-5 py-2.5 rounded-xl border border-border text-foreground hover:bg-muted text-sm font-semibold"
                 >
                   Back to Image
                 </motion.button>
@@ -646,7 +644,7 @@ export const ReportWastePage = () => {
                     }
                     setStage(4);
                   }}
-                  className="px-8 py-3 rounded-xl bg-gradient-to-r from-[#00a884] to-[#25d366] text-[#111b21] font-bold text-sm shadow-lg shadow-[#00a884]/20 flex items-center gap-2"
+                  className="px-8 py-3 rounded-xl bg-primary hover:bg-primary/90 text-primary-foreground font-bold text-sm shadow-lg flex items-center gap-2"
                 >
                   Review Summary <ArrowRight className="w-4 h-4" />
                 </motion.button>
@@ -665,44 +663,44 @@ export const ReportWastePage = () => {
             transition={{ duration: 0.25 }}
           >
             <BorderGlowCard className="p-8 space-y-6">
-              <h2 className="text-xl font-bold text-white flex items-center gap-2">
-                <ShieldCheck className="w-6 h-6 text-[#25d366]" /> Step 4: Explicit Review & Submission
+              <h2 className="text-xl font-bold text-foreground flex items-center gap-2">
+                <ShieldCheck className="w-6 h-6 text-primary" /> Step 4: Explicit Review & Submission
               </h2>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 p-6 rounded-2xl bg-[#111b21]/70 border border-[#2a3942] text-sm">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 p-6 rounded-2xl bg-muted/40 border border-border text-sm">
                 <div className="space-y-3">
                   <div>
-                    <span className="text-xs text-[#8696a0] block">Confirmed Waste Category:</span>
-                    <span className="font-bold text-[#25d366] text-base">{wasteType}</span>
-                    <span className="text-[11px] text-[#8696a0] block">AI Suggested: {aiSuggestedCategory || 'User selected'}</span>
+                    <span className="text-xs text-muted-foreground block">Confirmed Waste Category:</span>
+                    <span className="font-bold text-primary text-base">{wasteType}</span>
+                    <span className="text-[11px] text-muted-foreground block">AI Suggested: {aiSuggestedCategory || 'User selected'}</span>
                   </div>
                   <div>
-                    <span className="text-xs text-[#8696a0] block">Issue Category:</span>
-                    <span className="font-semibold text-white">{issueType}</span>
+                    <span className="text-xs text-muted-foreground block">Issue Category:</span>
+                    <span className="font-semibold text-foreground">{issueType}</span>
                   </div>
                   <div>
-                    <span className="text-xs text-[#8696a0] block">Severity Level:</span>
-                    <span className="font-semibold text-amber-300">{severity}</span>
+                    <span className="text-xs text-muted-foreground block">Severity Level:</span>
+                    <span className="font-semibold text-accent">{severity}</span>
                   </div>
                 </div>
 
                 <div className="space-y-3">
                   <div>
-                    <span className="text-xs text-[#8696a0] block">Report Location:</span>
-                    <span className="font-semibold text-white">{location || 'Sector 4, New Delhi'}</span>
+                    <span className="text-xs text-muted-foreground block">Report Location:</span>
+                    <span className="font-semibold text-foreground">{location || 'Sector 4, New Delhi'}</span>
                   </div>
                   <div>
-                    <span className="text-xs text-[#8696a0] block">Landmark:</span>
-                    <span className="text-[#e9edef]">{landmark || 'Not specified'}</span>
+                    <span className="text-xs text-muted-foreground block">Landmark:</span>
+                    <span className="text-foreground">{landmark || 'Not specified'}</span>
                   </div>
                   <div>
-                    <span className="text-xs text-[#8696a0] block">SMS Notification Destination:</span>
-                    <span className="font-mono text-[#25d366] font-bold">{user?.phone || guestPhone || 'Provided mobile'}</span>
+                    <span className="text-xs text-muted-foreground block">SMS Notification Destination:</span>
+                    <span className="font-mono text-primary font-bold">{user?.phone || guestPhone || 'Provided mobile'}</span>
                   </div>
                   {!user && (
                     <div>
-                      <span className="text-xs text-[#8696a0] block">Reporter Name:</span>
-                      <span className="font-semibold text-white">{guestName}</span>
+                      <span className="text-xs text-muted-foreground block">Reporter Name:</span>
+                      <span className="font-semibold text-foreground">{guestName}</span>
                     </div>
                   )}
                 </div>
@@ -713,7 +711,7 @@ export const ReportWastePage = () => {
                   whileHover={{ scale: 1.02 }}
                   whileTap={{ scale: 0.98 }}
                   onClick={() => setStage(3)}
-                  className="px-5 py-2.5 rounded-xl glass-panel text-[#e9edef] hover:bg-[#1f2c34] text-sm font-semibold"
+                  className="px-5 py-2.5 rounded-xl border border-border text-foreground hover:bg-muted text-sm font-semibold"
                 >
                   Edit Form Fields
                 </motion.button>
@@ -722,7 +720,7 @@ export const ReportWastePage = () => {
                   whileTap={{ scale: 0.98 }}
                   onClick={handleSubmitReport}
                   disabled={submitting}
-                  className="px-8 py-3.5 rounded-xl bg-gradient-to-r from-[#00a884] to-[#25d366] text-[#111b21] font-extrabold text-sm shadow-xl shadow-[#00a884]/25 flex items-center gap-2"
+                  className="px-8 py-3.5 rounded-xl bg-primary hover:bg-primary/90 text-primary-foreground font-extrabold text-sm shadow-xl flex items-center gap-2"
                 >
                   {submitting ? 'Submitting Report...' : 'Confirm & Submit Waste Report'}
                 </motion.button>
@@ -740,17 +738,17 @@ export const ReportWastePage = () => {
             transition={{ duration: 0.35, ease: 'easeOut' }}
           >
             <BorderGlowCard className="p-12 text-center space-y-6">
-              <div className="w-16 h-16 rounded-full bg-[#12332a] text-[#25d366] flex items-center justify-center mx-auto border border-[#00a884]/40">
+              <div className="w-16 h-16 rounded-full bg-secondary text-primary flex items-center justify-center mx-auto border border-primary/40">
                 <CheckCircle2 className="w-10 h-10" />
               </div>
 
               <div className="space-y-2">
-                <h2 className="text-2xl font-extrabold text-white">Waste Report Submitted!</h2>
+                <h2 className="text-2xl font-extrabold text-foreground">Waste Report Submitted!</h2>
                 {submittedComplaint?.id && (
-                  <p className="text-xs font-mono text-[#25d366]">Complaint ID: {submittedComplaint.id}</p>
+                  <p className="text-xs font-mono text-primary">Complaint ID: {submittedComplaint.id}</p>
                 )}
-                <p className="text-sm text-[#8696a0] max-w-md mx-auto">
-                  Your report has been queued for municipal review. An SMS confirmation was dispatched to <span className="text-[#25d366] font-mono">{user?.phone || guestPhone}</span>.
+                <p className="text-sm text-muted-foreground max-w-md mx-auto">
+                  Your report has been queued for municipal review. A confirmation email has been sent to {(user?.email || guestEmail) ? <span className="text-primary font-mono">{user?.email || guestEmail}</span> : 'your registered email address'}.
                 </p>
               </div>
 
@@ -759,7 +757,7 @@ export const ReportWastePage = () => {
                   whileHover={{ scale: 1.02 }}
                   whileTap={{ scale: 0.98 }}
                   onClick={() => navigate('/complaints')}
-                  className="px-6 py-3 rounded-xl bg-[#00a884] text-[#111b21] font-bold text-sm shadow-lg"
+                  className="px-6 py-3 rounded-xl bg-primary hover:bg-primary/90 text-primary-foreground font-bold text-sm shadow-lg"
                 >
                   Track Complaint Status
                 </motion.button>
@@ -770,7 +768,7 @@ export const ReportWastePage = () => {
                     setStage(1);
                     setImagePreview('');
                   }}
-                  className="px-6 py-3 rounded-xl glass-panel text-[#e9edef] hover:bg-[#1f2c34] text-sm font-semibold"
+                  className="px-6 py-3 rounded-xl border border-border text-foreground hover:bg-muted text-sm font-semibold"
                 >
                   Report Another Problem
                 </motion.button>
