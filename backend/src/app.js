@@ -75,6 +75,22 @@ app.get('/health', (req, res) => {
   });
 });
 
+// Diagnostics endpoint — shows which env vars are SET (not their values)
+app.get('/diagnostics', (req, res) => {
+  const check = (key) => !!process.env[key] && process.env[key] !== '**********' && process.env[key] !== 'your_twilio_account_sid';
+  return successResponse(res, 200, 'Environment diagnostics', {
+    MONGODB_URI: check('MONGODB_URI'),
+    JWT_SECRET: check('JWT_SECRET'),
+    CLOUDINARY_CLOUD_NAME: check('CLOUDINARY_CLOUD_NAME'),
+    CLOUDINARY_API_KEY: check('CLOUDINARY_API_KEY'),
+    CLOUDINARY_API_SECRET: check('CLOUDINARY_API_SECRET'),
+    GROQ_API_KEY: check('GROQ_API_KEY'),
+    GEMINI_API_KEY: check('GEMINI_API_KEY'),
+    SMS_PROVIDER: process.env.SMS_PROVIDER || 'not set',
+    NODE_ENV: process.env.NODE_ENV || 'not set',
+  });
+});
+
 // Root API Endpoint
 app.get('/api', (req, res) => {
   return successResponse(res, 200, 'Welcome to WasteSphere Backend API', {
