@@ -1,0 +1,71 @@
+@import "tailwindcss";
+
+@layer base {
+  body {
+    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+    background-color: #05130E;
+    color: #f1f5f9;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    font-family: 'Outfit', 'Inter', sans-serif;
+  }
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+}
+::-webkit-scrollbar-track {
+  background: #05130E;
+}
+::-webkit-scrollbar-thumb {
+  background: #102A20;
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #059669;
+}
+
+/* Glassmorphism utility */
+.glass-panel {
+  background: rgba(11, 31, 23, 0.65);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(52, 211, 153, 0.12);
+}
+
+.glass-card {
+  background: rgba(16, 42, 32, 0.5);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border: 1px solid rgba(52, 211, 153, 0.15);
+}
+
+/* Masked Heading text clip effect */
+.masked-heading-text {
+  background: linear-gradient(135deg, #ffffff 0%, #a7f3d0 40%, #10b981 70%, #047857 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+/* Border Glow Animation */
+@keyframes borderGlowPulse {
+  0%, 100% {
+    border-color: rgba(52, 211, 153, 0.3);
+    box-shadow: 0 0 15px rgba(16, 185, 129, 0.15);
+  }
+  50% {
+    border-color: rgba(52, 211, 153, 0.8);
+    box-shadow: 0 0 25px rgba(16, 185, 129, 0.35);
+  }
+}
+
+.animate-border-glow {
+  animation: borderGlowPulse 3s ease-in-out infinite;
+}
+
+/* Ambient glow blobs */
+.emerald-radial-glow {
+  background: radial-gradient(circle at center, rgba(16, 185, 129, 0.15) 0%, rgba(5, 19, 14, 0) 70%);
+}
