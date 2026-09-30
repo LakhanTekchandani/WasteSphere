@@ -1,5 +1,6 @@
 import React from 'react';
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Navigate, useLocation } from 'react-router-dom';
+import { AnimatePresence, motion } from 'framer-motion';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { ToastProvider } from './context/ToastContext';
 import { Navbar } from './components/common/Navbar';
@@ -36,34 +37,54 @@ const AdminRoute = ({ children }) => {
   return children;
 };
 
+// Page Transition Animation Wrapper
+const PageTransition = ({ children }) => (
+  <motion.div
+    initial={{ opacity: 0, y: 12 }}
+    animate={{ opacity: 1, y: 0 }}
+    exit={{ opacity: 0, y: -12 }}
+    transition={{ duration: 0.28, ease: 'easeOut' }}
+    className="w-full"
+  >
+    {children}
+  </motion.div>
+);
+
 export function AppContent() {
+  const location = useLocation();
+
   return (
-    <div className="min-h-screen bg-[#05130E] text-slate-100 flex flex-col selection:bg-emerald-500/30 selection:text-emerald-300">
+    <div className="min-h-screen bg-[#0b141a] text-[#e9edef] flex flex-col selection:bg-[#00a884]/30 selection:text-[#25d366]">
       <GlowCursor />
       <Navbar />
       <main className="flex-grow">
-        <Routes>
-          <Route path="/" element={<LandingPage />} />
-          <Route path="/login" element={<LoginPage />} />
-          <Route path="/register" element={<RegisterPage />} />
-          <Route path="/awareness" element={<AwarenessPage />} />
+        <AnimatePresence mode="wait">
+          <Routes location={location} key={location.pathname}>
+            {/* Public Routes */}
+            <Route path="/" element={<PageTransition><LandingPage /></PageTransition>} />
+            <Route path="/login" element={<PageTransition><LoginPage /></PageTransition>} />
+            <Route path="/register" element={<PageTransition><RegisterPage /></PageTransition>} />
+            <Route path="/awareness" element={<PageTransition><AwarenessPage /></PageTransition>} />
 
-          {/* Protected Citizen Routes */}
-          <Route path="/dashboard" element={<CitizenRoute><DashboardPage /></CitizenRoute>} />
-          <Route path="/report" element={<CitizenRoute><ReportWastePage /></CitizenRoute>} />
-          <Route path="/complaints" element={<CitizenRoute><ComplaintsPage /></CitizenRoute>} />
-          <Route path="/complaints/:id" element={<CitizenRoute><ComplaintDetailPage /></CitizenRoute>} />
-          <Route path="/pickup" element={<CitizenRoute><PickupPage /></CitizenRoute>} />
-          <Route path="/badges" element={<CitizenRoute><BadgesPage /></CitizenRoute>} />
-          <Route path="/certificate" element={<CitizenRoute><CertificatePage /></CitizenRoute>} />
+            {/* PUBLIC Report/Complaint Flow - Accessible by Guests and Logged-in Users */}
+            <Route path="/report" element={<PageTransition><ReportWastePage /></PageTransition>} />
 
-          {/* Protected Admin Routes */}
-          <Route path="/admin" element={<AdminRoute><AdminDashboardPage /></AdminRoute>} />
-          <Route path="/admin/verifications" element={<AdminRoute><AdminVerificationsPage /></AdminRoute>} />
+            {/* Protected Citizen Routes */}
+            <Route path="/dashboard" element={<CitizenRoute><PageTransition><DashboardPage /></PageTransition></CitizenRoute>} />
+            <Route path="/complaints" element={<CitizenRoute><PageTransition><ComplaintsPage /></PageTransition></CitizenRoute>} />
+            <Route path="/complaints/:id" element={<CitizenRoute><PageTransition><ComplaintDetailPage /></PageTransition></CitizenRoute>} />
+            <Route path="/pickup" element={<CitizenRoute><PageTransition><PickupPage /></PageTransition></CitizenRoute>} />
+            <Route path="/badges" element={<CitizenRoute><PageTransition><BadgesPage /></PageTransition></CitizenRoute>} />
+            <Route path="/certificate" element={<CitizenRoute><PageTransition><CertificatePage /></PageTransition></CitizenRoute>} />
 
-          {/* Catch-all fallback */}
-          <Route path="*" element={<Navigate to="/" replace />} />
-        </Routes>
+            {/* Protected Admin Routes */}
+            <Route path="/admin" element={<AdminRoute><PageTransition><AdminDashboardPage /></PageTransition></AdminRoute>} />
+            <Route path="/admin/verifications" element={<AdminRoute><PageTransition><AdminVerificationsPage /></PageTransition></AdminRoute>} />
+
+            {/* Catch-all fallback */}
+            <Route path="*" element={<Navigate to="/" replace />} />
+          </Routes>
+        </AnimatePresence>
       </main>
       <Footer />
     </div>

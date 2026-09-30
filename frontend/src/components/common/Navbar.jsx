@@ -9,12 +9,9 @@ import {
   Truck,
   BookOpen,
   Award,
-  ShieldAlert,
   LogOut,
   Menu,
   X,
-  Bell,
-  CheckCircle,
   UserCheck,
   Building2,
   FileCheck
@@ -22,11 +19,10 @@ import {
 import { motion, AnimatePresence } from 'framer-motion';
 
 export const Navbar = () => {
-  const { user, isCitizen, isAdmin, isApprovedAdmin, logout, switchDemoRole } = useAuth();
+  const { user, isCitizen, isAdmin, logout } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
   const [mobileOpen, setMobileOpen] = useState(false);
-  const [showRoleSwitcherMenu, setShowRoleSwitcherMenu] = useState(false);
 
   const isActive = (path) => location.pathname === path;
 
@@ -37,20 +33,26 @@ export const Navbar = () => {
   };
 
   return (
-    <header className="sticky top-0 z-40 w-full glass-panel border-b border-emerald-500/15 backdrop-blur-xl bg-[#05130E]/80">
+    <motion.header 
+      initial={{ y: -20, opacity: 0 }}
+      animate={{ y: 0, opacity: 1 }}
+      transition={{ duration: 0.35, ease: 'easeOut' }}
+      className="sticky top-0 z-40 w-full glass-panel border-b border-[#2a3942] backdrop-blur-xl bg-[#0b141a]/90"
+    >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
           {/* Logo */}
           <Link to="/" className="flex items-center gap-2.5 group">
-            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-emerald-500 to-teal-700 flex items-center justify-center shadow-lg shadow-emerald-500/20 group-hover:scale-105 transition-transform duration-300">
+            <motion.div 
+              whileHover={{ rotate: 10, scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+              className="w-10 h-10 rounded-xl bg-gradient-to-br from-[#00a884] to-[#075e54] flex items-center justify-center shadow-lg shadow-[#00a884]/25 border border-[#25d366]/30"
+            >
               <Sparkles className="w-5 h-5 text-white" />
-            </div>
+            </motion.div>
             <div className="flex flex-col">
-              <span className="font-extrabold text-xl tracking-tight text-white group-hover:text-emerald-300 transition-colors">
-                Waste<span className="text-emerald-400">Sphere</span>
-              </span>
-              <span className="text-[10px] tracking-widest text-emerald-400/80 uppercase font-semibold">
-                Civic Tech Platform
+              <span className="font-extrabold text-xl tracking-tight text-white group-hover:text-[#25d366] transition-colors">
+                Waste<span className="text-[#25d366]">Sphere</span>
               </span>
             </div>
           </Link>
@@ -62,17 +64,27 @@ export const Navbar = () => {
                 <Link
                   to="/"
                   className={`px-3 py-2 rounded-lg transition-colors ${
-                    isActive('/') ? 'text-emerald-400 bg-emerald-500/10' : 'text-slate-300 hover:text-white hover:bg-emerald-950/30'
+                    isActive('/') ? 'text-[#25d366] bg-[#00a884]/15 border border-[#00a884]/30' : 'text-[#8696a0] hover:text-[#e9edef] hover:bg-[#1f2c34]/50'
                   }`}
                 >
                   Home
                 </Link>
                 <Link
-                  to="/awareness"
-                  className={`px-3 py-2 rounded-lg transition-colors ${
-                    isActive('/awareness') ? 'text-emerald-400 bg-emerald-500/10' : 'text-slate-300 hover:text-white hover:bg-emerald-950/30'
+                  to="/report"
+                  className={`flex items-center gap-1.5 px-3 py-2 rounded-lg transition-colors ${
+                    isActive('/report') ? 'text-[#25d366] bg-[#00a884]/15 border border-[#00a884]/30' : 'text-[#8696a0] hover:text-[#e9edef] hover:bg-[#1f2c34]/50'
                   }`}
                 >
+                  <PlusCircle className="w-4 h-4 text-[#25d366]" />
+                  Report Waste
+                </Link>
+                <Link
+                  to="/awareness"
+                  className={`flex items-center gap-1.5 px-3 py-2 rounded-lg transition-colors ${
+                    isActive('/awareness') ? 'text-[#25d366] bg-[#00a884]/15 border border-[#00a884]/30' : 'text-[#8696a0] hover:text-[#e9edef] hover:bg-[#1f2c34]/50'
+                  }`}
+                >
+                  <BookOpen className="w-4 h-4" />
                   Awareness & Quiz
                 </Link>
               </>
@@ -83,43 +95,27 @@ export const Navbar = () => {
                 <Link
                   to="/dashboard"
                   className={`flex items-center gap-1.5 px-3 py-2 rounded-lg transition-colors ${
-                    isActive('/dashboard') ? 'text-emerald-400 bg-emerald-500/10' : 'text-slate-300 hover:text-white hover:bg-emerald-950/30'
+                    isActive('/dashboard') ? 'text-[#25d366] bg-[#00a884]/15 border border-[#00a884]/30' : 'text-[#8696a0] hover:text-[#e9edef] hover:bg-[#1f2c34]/50'
                   }`}
                 >
                   <LayoutDashboard className="w-4 h-4" />
                   Dashboard
                 </Link>
-                <Link
-                  to="/report"
-                  className={`flex items-center gap-1.5 px-3 py-2 rounded-lg transition-colors ${
-                    isActive('/report') ? 'text-emerald-400 bg-emerald-500/10' : 'text-slate-300 hover:text-white hover:bg-emerald-950/30'
-                  }`}
-                >
-                  <PlusCircle className="w-4 h-4 text-emerald-400" />
-                  Report Waste
-                </Link>
+
                 <Link
                   to="/complaints"
                   className={`flex items-center gap-1.5 px-3 py-2 rounded-lg transition-colors ${
-                    isActive('/complaints') ? 'text-emerald-400 bg-emerald-500/10' : 'text-slate-300 hover:text-white hover:bg-emerald-950/30'
+                    isActive('/complaints') ? 'text-[#25d366] bg-[#00a884]/15 border border-[#00a884]/30' : 'text-[#8696a0] hover:text-[#e9edef] hover:bg-[#1f2c34]/50'
                   }`}
                 >
                   <FileText className="w-4 h-4" />
                   My Complaints
                 </Link>
-                <Link
-                  to="/pickup"
-                  className={`flex items-center gap-1.5 px-3 py-2 rounded-lg transition-colors ${
-                    isActive('/pickup') ? 'text-emerald-400 bg-emerald-500/10' : 'text-slate-300 hover:text-white hover:bg-emerald-950/30'
-                  }`}
-                >
-                  <Truck className="w-4 h-4" />
-                  Pickup Request
-                </Link>
+               
                 <Link
                   to="/awareness"
                   className={`flex items-center gap-1.5 px-3 py-2 rounded-lg transition-colors ${
-                    isActive('/awareness') ? 'text-emerald-400 bg-emerald-500/10' : 'text-slate-300 hover:text-white hover:bg-emerald-950/30'
+                    isActive('/awareness') ? 'text-[#25d366] bg-[#00a884]/15 border border-[#00a884]/30' : 'text-[#8696a0] hover:text-[#e9edef] hover:bg-[#1f2c34]/50'
                   }`}
                 >
                   <BookOpen className="w-4 h-4" />
@@ -128,7 +124,7 @@ export const Navbar = () => {
                 <Link
                   to="/badges"
                   className={`flex items-center gap-1.5 px-3 py-2 rounded-lg transition-colors ${
-                    isActive('/badges') ? 'text-emerald-400 bg-emerald-500/10' : 'text-slate-300 hover:text-white hover:bg-emerald-950/30'
+                    isActive('/badges') ? 'text-[#25d366] bg-[#00a884]/15 border border-[#00a884]/30' : 'text-[#8696a0] hover:text-[#e9edef] hover:bg-[#1f2c34]/50'
                   }`}
                 >
                   <Award className="w-4 h-4" />
@@ -137,7 +133,7 @@ export const Navbar = () => {
                 <Link
                   to="/certificate"
                   className={`flex items-center gap-1.5 px-3 py-2 rounded-lg transition-colors ${
-                    isActive('/certificate') ? 'text-emerald-400 bg-emerald-500/10' : 'text-slate-300 hover:text-white hover:bg-emerald-950/30'
+                    isActive('/certificate') ? 'text-[#25d366] bg-[#00a884]/15 border border-[#00a884]/30' : 'text-[#8696a0] hover:text-[#e9edef] hover:bg-[#1f2c34]/50'
                   }`}
                 >
                   <FileCheck className="w-4 h-4" />
@@ -151,16 +147,16 @@ export const Navbar = () => {
                 <Link
                   to="/admin"
                   className={`flex items-center gap-1.5 px-3 py-2 rounded-lg transition-colors ${
-                    isActive('/admin') ? 'text-emerald-400 bg-emerald-500/10' : 'text-slate-300 hover:text-white hover:bg-emerald-950/30'
+                    isActive('/admin') ? 'text-[#25d366] bg-[#00a884]/15 border border-[#00a884]/30' : 'text-[#8696a0] hover:text-[#e9edef] hover:bg-[#1f2c34]/50'
                   }`}
                 >
-                  <Building2 className="w-4 h-4 text-emerald-400" />
+                  <Building2 className="w-4 h-4 text-[#25d366]" />
                   Admin Overview
                 </Link>
                 <Link
                   to="/admin/verifications"
                   className={`flex items-center gap-1.5 px-3 py-2 rounded-lg transition-colors ${
-                    isActive('/admin/verifications') ? 'text-emerald-400 bg-emerald-500/10' : 'text-slate-300 hover:text-white hover:bg-emerald-950/30'
+                    isActive('/admin/verifications') ? 'text-[#25d366] bg-[#00a884]/15 border border-[#00a884]/30' : 'text-[#8696a0] hover:text-[#e9edef] hover:bg-[#1f2c34]/50'
                   }`}
                 >
                   <UserCheck className="w-4 h-4" />
@@ -170,81 +166,41 @@ export const Navbar = () => {
             )}
           </nav>
 
-          {/* User Controls & Demo Switcher */}
+          {/* User Controls */}
           <div className="hidden md:flex items-center gap-3">
-            {/* Hackathon Demo Role Switcher */}
-            <div className="relative">
-              <button
-                onClick={() => setShowRoleSwitcherMenu(!showRoleSwitcherMenu)}
-                className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold bg-emerald-950/60 border border-emerald-500/30 text-emerald-300 hover:bg-emerald-900/60 transition-colors shadow-inner"
-              >
-                <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-                Role: {user ? (isAdmin ? 'Admin' : 'Citizen') : 'Guest'}
-              </button>
-
-              <AnimatePresence>
-                {showRoleSwitcherMenu && (
-                  <motion.div
-                    initial={{ opacity: 0, y: 10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, y: 10 }}
-                    className="absolute right-0 mt-2 w-48 rounded-xl glass-panel shadow-2xl p-2 z-50 border border-emerald-500/30"
-                  >
-                    <div className="text-[11px] font-semibold text-slate-400 px-3 py-1 uppercase tracking-wider">
-                      Demo Role Switcher
-                    </div>
-                    <button
-                      onClick={() => {
-                        switchDemoRole('citizen');
-                        setShowRoleSwitcherMenu(false);
-                        navigate('/dashboard');
-                      }}
-                      className="w-full text-left px-3 py-2 text-xs rounded-lg hover:bg-emerald-500/20 text-slate-200 flex items-center justify-between"
-                    >
-                      <span>Citizen Demo User</span>
-                      {isCitizen && <CheckCircle className="w-3.5 h-3.5 text-emerald-400" />}
-                    </button>
-                    <button
-                      onClick={() => {
-                        switchDemoRole('admin');
-                        setShowRoleSwitcherMenu(false);
-                        navigate('/admin');
-                      }}
-                      className="w-full text-left px-3 py-2 text-xs rounded-lg hover:bg-emerald-500/20 text-slate-200 flex items-center justify-between"
-                    >
-                      <span>Admin Demo Officer</span>
-                      {isAdmin && <CheckCircle className="w-3.5 h-3.5 text-emerald-400" />}
-                    </button>
-                  </motion.div>
-                )}
-              </AnimatePresence>
-            </div>
-
             {user ? (
-              <div className="flex items-center gap-2 pl-2 border-l border-emerald-500/20">
-                <span className="text-xs text-slate-300 font-medium px-2">{user.name}</span>
-                <button
+              <div className="flex items-center gap-3">
+                <span className="px-2.5 py-1 rounded-full text-xs font-semibold bg-[#12332a] border border-[#00a884]/40 text-[#25d366] flex items-center gap-1.5">
+                  <span className="w-2 h-2 rounded-full bg-[#25d366] animate-pulse" />
+                  {user.role === 'admin' ? 'Officer' : 'Citizen'}
+                </span>
+                <span className="text-xs text-[#e9edef] font-semibold">{user.name}</span>
+                <motion.button
+                  whileHover={{ scale: 1.1 }}
+                  whileTap={{ scale: 0.9 }}
                   onClick={handleLogout}
                   title="Logout"
-                  className="p-2 rounded-lg text-slate-400 hover:text-rose-400 hover:bg-rose-500/10 transition-colors"
+                  className="p-2 rounded-lg text-[#8696a0] hover:text-[#ea4335] hover:bg-[#ea4335]/10 transition-colors"
                 >
                   <LogOut className="w-4 h-4" />
-                </button>
+                </motion.button>
               </div>
             ) : (
               <div className="flex items-center gap-2">
                 <Link
                   to="/login"
-                  className="px-4 py-2 text-sm font-medium text-slate-200 hover:text-white transition-colors"
+                  className="px-4 py-2 text-sm font-medium text-[#e9edef] hover:text-white transition-colors"
                 >
                   Sign In
                 </Link>
-                <Link
-                  to="/register"
-                  className="px-4 py-2 text-sm font-semibold rounded-xl bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-400 hover:to-teal-500 text-white shadow-lg shadow-emerald-500/25 transition-all hover:scale-[1.02]"
-                >
-                  Get Started
-                </Link>
+                <motion.div whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }}>
+                  <Link
+                    to="/register"
+                    className="px-4 py-2 text-sm font-semibold rounded-xl bg-gradient-to-r from-[#00a884] to-[#25d366] text-[#111b21] shadow-lg shadow-[#00a884]/20 transition-all font-bold"
+                  >
+                    Get Started
+                  </Link>
+                </motion.div>
               </div>
             )}
           </div>
@@ -253,7 +209,7 @@ export const Navbar = () => {
           <div className="flex md:hidden items-center gap-2">
             <button
               onClick={() => setMobileOpen(!mobileOpen)}
-              className="p-2 rounded-lg text-slate-300 hover:text-white hover:bg-emerald-950/40"
+              className="p-2 rounded-lg text-[#e9edef] hover:bg-[#1f2c34]"
             >
               {mobileOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
             </button>
@@ -268,48 +224,37 @@ export const Navbar = () => {
             initial={{ opacity: 0, height: 0 }}
             animate={{ opacity: 1, height: 'auto' }}
             exit={{ opacity: 0, height: 0 }}
-            className="md:hidden glass-panel border-t border-emerald-500/20 px-4 pt-3 pb-6 flex flex-col gap-2"
+            transition={{ duration: 0.25 }}
+            className="md:hidden glass-panel border-t border-[#2a3942] px-4 pt-3 pb-6 flex flex-col gap-2 bg-[#0b141a]"
           >
-            {/* Role indicator & switcher on mobile */}
-            <div className="flex items-center justify-between p-2 rounded-lg bg-emerald-950/60 border border-emerald-500/20 mb-2">
-              <span className="text-xs text-slate-300">Active Role: <strong>{user?.role || 'Guest'}</strong></span>
-              <div className="flex gap-1">
-                <button
-                  onClick={() => { switchDemoRole('citizen'); navigate('/dashboard'); setMobileOpen(false); }}
-                  className="px-2 py-1 text-[11px] rounded bg-emerald-800/50 text-emerald-200"
-                >
-                  Citizen
-                </button>
-                <button
-                  onClick={() => { switchDemoRole('admin'); navigate('/admin'); setMobileOpen(false); }}
-                  className="px-2 py-1 text-[11px] rounded bg-emerald-800/50 text-emerald-200"
-                >
-                  Admin
-                </button>
+            {user && (
+              <div className="p-2.5 rounded-lg bg-[#12332a] border border-[#00a884]/30 mb-2 flex items-center justify-between text-xs text-[#e9edef]">
+                <span>User: <strong>{user.name}</strong></span>
+                <span className="font-semibold text-[#25d366] uppercase">{user.role}</span>
               </div>
-            </div>
+            )}
 
             {isCitizen && (
               <>
-                <Link to="/dashboard" onClick={() => setMobileOpen(false)} className="px-3 py-2 rounded-lg text-slate-200 hover:bg-emerald-500/10">
+                <Link to="/dashboard" onClick={() => setMobileOpen(false)} className="px-3 py-2 rounded-lg text-[#e9edef] hover:bg-[#1f2c34]">
                   Dashboard
                 </Link>
-                <Link to="/report" onClick={() => setMobileOpen(false)} className="px-3 py-2 rounded-lg text-emerald-400 font-semibold bg-emerald-500/10">
+                <Link to="/report" onClick={() => setMobileOpen(false)} className="px-3 py-2 rounded-lg text-[#25d366] font-semibold bg-[#00a884]/15">
                   + Report Waste
                 </Link>
-                <Link to="/complaints" onClick={() => setMobileOpen(false)} className="px-3 py-2 rounded-lg text-slate-200 hover:bg-emerald-500/10">
+                <Link to="/complaints" onClick={() => setMobileOpen(false)} className="px-3 py-2 rounded-lg text-[#e9edef] hover:bg-[#1f2c34]">
                   My Complaints
                 </Link>
-                <Link to="/pickup" onClick={() => setMobileOpen(false)} className="px-3 py-2 rounded-lg text-slate-200 hover:bg-emerald-500/10">
+                <Link to="/pickup" onClick={() => setMobileOpen(false)} className="px-3 py-2 rounded-lg text-[#e9edef] hover:bg-[#1f2c34]">
                   Pickup Request
                 </Link>
-                <Link to="/awareness" onClick={() => setMobileOpen(false)} className="px-3 py-2 rounded-lg text-slate-200 hover:bg-emerald-500/10">
+                <Link to="/awareness" onClick={() => setMobileOpen(false)} className="px-3 py-2 rounded-lg text-[#e9edef] hover:bg-[#1f2c34]">
                   Awareness & Quiz
                 </Link>
-                <Link to="/badges" onClick={() => setMobileOpen(false)} className="px-3 py-2 rounded-lg text-slate-200 hover:bg-emerald-500/10">
+                <Link to="/badges" onClick={() => setMobileOpen(false)} className="px-3 py-2 rounded-lg text-[#e9edef] hover:bg-[#1f2c34]">
                   Badges
                 </Link>
-                <Link to="/certificate" onClick={() => setMobileOpen(false)} className="px-3 py-2 rounded-lg text-slate-200 hover:bg-emerald-500/10">
+                <Link to="/certificate" onClick={() => setMobileOpen(false)} className="px-3 py-2 rounded-lg text-[#e9edef] hover:bg-[#1f2c34]">
                   Certificate
                 </Link>
               </>
@@ -317,21 +262,30 @@ export const Navbar = () => {
 
             {isAdmin && (
               <>
-                <Link to="/admin" onClick={() => setMobileOpen(false)} className="px-3 py-2 rounded-lg text-slate-200 hover:bg-emerald-500/10">
+                <Link to="/admin" onClick={() => setMobileOpen(false)} className="px-3 py-2 rounded-lg text-[#e9edef] hover:bg-[#1f2c34]">
                   Admin Dashboard
                 </Link>
-                <Link to="/admin/verifications" onClick={() => setMobileOpen(false)} className="px-3 py-2 rounded-lg text-slate-200 hover:bg-emerald-500/10">
+                <Link to="/admin/verifications" onClick={() => setMobileOpen(false)} className="px-3 py-2 rounded-lg text-[#e9edef] hover:bg-[#1f2c34]">
                   Officer Verifications
                 </Link>
               </>
             )}
 
             {!user && (
-              <div className="flex flex-col gap-2 pt-2 border-t border-emerald-500/20">
-                <Link to="/login" onClick={() => setMobileOpen(false)} className="w-full text-center py-2 text-slate-200">
+              <div className="flex flex-col gap-2 pt-2 border-t border-[#2a3942]">
+                <Link to="/" onClick={() => setMobileOpen(false)} className="w-full px-3 py-2 rounded-lg text-[#e9edef] hover:bg-[#1f2c34]">
+                  Home
+                </Link>
+                <Link to="/report" onClick={() => setMobileOpen(false)} className="w-full px-3 py-2 rounded-lg text-[#25d366] font-semibold bg-[#00a884]/15">
+                  + Report Waste (Public)
+                </Link>
+                <Link to="/awareness" onClick={() => setMobileOpen(false)} className="w-full px-3 py-2 rounded-lg text-[#e9edef] hover:bg-[#1f2c34]">
+                  Awareness & Quiz
+                </Link>
+                <Link to="/login" onClick={() => setMobileOpen(false)} className="w-full text-center py-2 text-[#e9edef] hover:bg-[#1f2c34] rounded-lg">
                   Sign In
                 </Link>
-                <Link to="/register" onClick={() => setMobileOpen(false)} className="w-full text-center py-2 rounded-xl bg-emerald-500 text-white font-semibold">
+                <Link to="/register" onClick={() => setMobileOpen(false)} className="w-full text-center py-2 rounded-xl bg-[#00a884] text-[#111b21] font-bold shadow-md">
                   Get Started
                 </Link>
               </div>
@@ -340,7 +294,7 @@ export const Navbar = () => {
             {user && (
               <button
                 onClick={handleLogout}
-                className="w-full mt-2 text-left px-3 py-2 rounded-lg text-rose-400 hover:bg-rose-500/10 flex items-center gap-2"
+                className="w-full mt-2 text-left px-3 py-2 rounded-lg text-[#ea4335] hover:bg-[#ea4335]/10 flex items-center gap-2"
               >
                 <LogOut className="w-4 h-4" /> Sign Out
               </button>
@@ -348,6 +302,6 @@ export const Navbar = () => {
           </motion.div>
         )}
       </AnimatePresence>
-    </header>
+    </motion.header>
   );
 };

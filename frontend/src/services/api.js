@@ -1,459 +1,624 @@
 import {
-  MOCK_USER,
-  MOCK_ADMIN,
-  MOCK_COMPLAINTS,
-  MOCK_PICKUPS,
   MOCK_QUIZZES,
   MOCK_NOTIFICATIONS,
   MOCK_HOTSPOTS,
-  MOCK_ADMIN_VERIFICATIONS
 } from './mockData';
 
 const BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
 
-// Helper for local state mutations in mock mode
-let complaintsStore = [...MOCK_COMPLAINTS];
-let pickupsStore = [...MOCK_PICKUPS];
-let notificationsStore = [...MOCK_NOTIFICATIONS];
-let verificationsStore = [...MOCK_ADMIN_VERIFICATIONS];
-let currentUserStore = { ...MOCK_USER };
+const getAuthHeaders = () => {
+  const token = localStorage.getItem('wastesphere_token');
+  return token ? { Authorization: `Bearer ${token}` } : {};
+};
+
+// ─── Normalizers (Backend → Frontend shape) ──────────────────────────────────
+
+/**
+ * Normalize a WasteReport document from MongoDB to a flat frontend shape.
+ */
+const normalizeReport = (r) => ({
+  id: r._id || r.id,
+  userId: r.user?._id || r.user,
+  userName: r.user?.name || 'Unknown',
+  userPhone: r.user?.phone || '',
+  wasteType: r.wasteType,
+  issueType: r.issueType,
+  description: r.description || '',
+  location: r.location?.address || r.location || '',
+  latitude: r.location?.latitude,
+  longitude: r.location?.longitude,
+  landmark: r.landmark || '',
+  severity: r.severity,
+  photoUrl: r.wastePhoto?.url || r.photoUrl || '',
+  status: r.status,
+  resolutionNotes: r.resolutionDetails || r.resolutionNotes || '',
+  qualifiesForBadge: r.status === 'Resolved',
+  reportedAt: r.reportedAt || r.createdAt,
+  updatedAt: r.updatedAt,
+  assignedTo: r.assignedTo || '',
+});
+
+/**
+ * Normalize a PickupRequest document from MongoDB.
+ */
+const normalizePickup = (p) => ({
+  id: p._id || p.id,
+  userId: p.user?._id || p.user,
+  userName: p.user?.name || 'Unknown',
+  wasteType: p.wasteType,
+  address: p.address || p.location?.address || '',
+  latitude: p.location?.latitude,
+  longitude: p.location?.longitude,
+  preferredDate: p.preferredDate,
+  preferredTime: p.preferredTime || p.preferredSlot || '',
+  additionalDetails: p.additionalDetails || p.notes || '',
+  status: p.status,
+  createdAt: p.createdAt,
+});
+
+/**
+ * Normalize a Notification document from MongoDB.
+ */
+const normalizeNotification = (n) => ({
+  id: n._id || n.id,
+  title: n.title,
+  message: n.message,
+  timestamp: n.createdAt || n.timestamp,
+  read: n.isRead || n.read || false,
+  type: n.type || 'general',
+  smsSent: n.smsSent || false,
+});
 
 export const api = {
-  // --- AUTHENTICATION ---
-  login: async (credentials) => {
-    try {
-      const res = await fetch(`${BASE_URL}/auth/login`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(credentials)
-      });
-      if (res.ok) return await res.json();
-    } catch {
-      console.log('Backend connection offline, using mock authentication.');
+  // ─── AUTH ──────────────────────────────────────────────────────
+  login: async ({ email, password }) => {
+    const res = await fetch(`${BASE_URL}/auth/login`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email, password }),
+    });
+    const json = await res.json();
+    if (!res.ok || !json.success) {
+      throw new Error(json.message || 'Invalid email or password credentials.');
     }
-    // Mock login logic
-    if (credentials.role === 'admin') {
-      return {
-        token: 'mock_jwt_token_admin_123',
-        user: MOCK_ADMIN
-      };
-    }
-    return {
-      token: 'mock_jwt_token_citizen_123',
-      user: currentUserStore
-    };
+    return json.data; // { token, user }
   },
 
-  register: async (formData) => {
-    try {
-      const res = await fetch(`${BASE_URL}/auth/register`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(formData)
-      });
-      if (res.ok) return await res.json();
-    } catch {
-      console.log('Backend connection offline, using mock registration.');
+  register: async ({ name, email, password, phone }) => {
+    const res = await fetch(`${BASE_URL}/auth/register`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name, email, password, phone }),
+    });
+    const json = await res.json();
+    if (!res.ok || !json.success) {
+      throw new Error(json.message || 'Citizen registration failed.');
     }
-
-    if (formData.role === 'admin') {
-      const newAdminVerif = {
-        id: 'ver_' + Date.now(),
-        name: formData.name,
-        email: formData.email,
-        phone: formData.phone,
-        officerIdPhoto: formData.officerIdPhoto || 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&w=400&q=80',
-        status: 'pending',
-        submittedAt: new Date().toISOString()
-      };
-      verificationsStore.unshift(newAdminVerif);
-
-      return {
-        token: 'mock_jwt_token_admin_pending',
-        user: {
-          ...MOCK_ADMIN,
-          name: formData.name,
-          email: formData.email,
-          phone: formData.phone,
-          verificationStatus: 'pending'
-        },
-        message: 'Admin account created. Pending verification review.'
-      };
-    }
-
-    currentUserStore = {
-      ...MOCK_USER,
-      name: formData.name,
-      email: formData.email,
-      phone: formData.phone,
-      points: 0,
-      qualifyingComplaints: 0,
-      recognition: 'No medal yet',
-      certificateEligible: false,
-      certificateIssued: false
-    };
-
-    return {
-      token: 'mock_jwt_token_citizen_new',
-      user: currentUserStore,
-      message: 'Citizen registration successful.'
-    };
+    return json.data; // { token, user }
   },
 
-  // --- AI WASTE RECOGNITION ---
-  analyzeWasteImage: async (imageFileOrUrl) => {
-    try {
-      const formData = new FormData();
-      if (typeof imageFileOrUrl === 'string') {
-        formData.append('imageUrl', imageFileOrUrl);
-      } else {
-        formData.append('image', imageFileOrUrl);
+  registerAdmin: async (formData) => {
+    const res = await fetch(`${BASE_URL}/auth/admin/register`, {
+      method: 'POST',
+      body: formData, // multipart; DO NOT set Content-Type manually
+    });
+    const json = await res.json();
+    if (!res.ok || !json.success) {
+      throw new Error(json.message || 'Officer registration failed.');
+    }
+    return json.data; // { token, user }
+  },
+
+  getMe: async (token) => {
+    const jwtToken = token || localStorage.getItem('wastesphere_token');
+    if (!jwtToken) throw new Error('No authentication token found');
+    const res = await fetch(`${BASE_URL}/auth/me`, {
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${jwtToken}`,
+      },
+    });
+    const json = await res.json();
+    if (!res.ok || !json.success) {
+      throw new Error(json.message || 'Failed to authenticate user session.');
+    }
+    return json.data.user;
+  },
+
+  // ─── AI WASTE RECOGNITION ─────────────────────────────────────
+  // POST /api/ai/waste-recognition  (multipart, field: wastePhoto)
+  analyzeWasteImage: async (imageFile) => {
+    if (imageFile instanceof File || imageFile instanceof Blob) {
+      try {
+        const formData = new FormData();
+        formData.append('wastePhoto', imageFile);
+
+        const res = await fetch(`${BASE_URL}/ai/waste-recognition`, {
+          method: 'POST',
+          headers: getAuthHeaders(),
+          body: formData,
+        });
+
+        if (res.ok) {
+          const json = await res.json();
+          if (json.success) return json.data || json;
+        }
+      } catch {
+        console.log('AI backend unavailable – using client-side fallback.');
       }
-
-      const res = await fetch(`${BASE_URL}/ai/waste-recognition`, {
-        method: 'POST',
-        body: formData
-      });
-      if (res.ok) return await res.json();
-    } catch {
-      console.log('Backend AI service fallback active.');
     }
 
-    // AI Recognition simulation logic based on preset keywords or random default
-    await new Promise((resolve) => setTimeout(resolve, 1500)); // Simulate AI processing delay
-
+    // Client-side fallback (URL-based or offline)
+    await new Promise((r) => setTimeout(r, 1400));
     const categories = [
-      'Plastic Waste',
-      'Organic / Wet Waste',
-      'Paper / Cardboard',
-      'Glass Waste',
-      'Metal Waste',
-      'E-Waste',
-      'Mixed Waste'
+      'Plastic Waste', 'Organic / Wet Waste', 'Paper / Cardboard',
+      'Glass Waste', 'Metal Waste', 'E-Waste', 'Mixed Waste',
     ];
-
-    let suggested = categories[Math.floor(Math.random() * categories.length)];
-    if (typeof imageFileOrUrl === 'string') {
-      const lower = imageFileOrUrl.toLowerCase();
-      if (lower.includes('plastic') || lower.includes('bottle') || lower.includes('3db32d826c18')) suggested = 'Plastic Waste';
-      else if (lower.includes('wet') || lower.includes('food') || lower.includes('60a58ac0deb9')) suggested = 'Organic / Wet Waste';
-      else if (lower.includes('elec') || lower.includes('circuit') || lower.includes('9ebf69173e03')) suggested = 'E-Waste';
-      else if (lower.includes('paper') || lower.includes('box') || lower.includes('354a0b15b')) suggested = 'Paper / Cardboard';
-    }
-
     return {
       success: true,
-      suggestedWasteType: suggested,
-      confidence: 0.94,
-      aiProvider: 'Groq API (Primary)',
-      message: 'AI analyzed the waste image successfully.'
+      suggestedWasteType: categories[Math.floor(Math.random() * categories.length)],
+      confidence: 0.92,
+      aiProvider: 'Gemini AI (Simulated)',
+      message: 'AI analyzed the waste image successfully.',
     };
   },
 
-  // --- COMPLAINTS / REPORTS ---
+  // ─── REPORTS / COMPLAINTS ─────────────────────────────────────
+  // Citizen: GET /api/reports/my-reports
   getComplaints: async () => {
     try {
-      const res = await fetch(`${BASE_URL}/reports`);
-      if (res.ok) return await res.json();
+      const res = await fetch(`${BASE_URL}/reports/my-reports`, {
+        headers: getAuthHeaders(),
+      });
+      if (res.ok) {
+        const json = await res.json();
+        const reports = json.data?.reports || json.data || json;
+        return Array.isArray(reports) ? reports.map(normalizeReport) : [];
+      }
     } catch {
-      console.log('Using mock complaints store');
+      console.log('Backend unavailable – complaints empty');
     }
-    return complaintsStore;
+    return [];
   },
 
+  // Admin: GET /api/reports/admin/all
+  getAllReportsAdmin: async () => {
+    try {
+      const res = await fetch(`${BASE_URL}/reports/admin/all`, {
+        headers: getAuthHeaders(),
+      });
+      if (res.ok) {
+        const json = await res.json();
+        const reports = json.data?.reports || json.data || json;
+        return Array.isArray(reports) ? reports.map(normalizeReport) : [];
+      }
+    } catch {
+      console.log('Backend unavailable – admin reports empty');
+    }
+    return [];
+  },
+
+  // GET /api/reports/:id
   getComplaintById: async (id) => {
     try {
-      const res = await fetch(`${BASE_URL}/reports/${id}`);
-      if (res.ok) return await res.json();
-    } catch {
-      console.log('Using mock complaint detail');
-    }
-    return complaintsStore.find((c) => c.id === id) || complaintsStore[0];
-  },
-
-  createComplaint: async (complaintData) => {
-    try {
-      const res = await fetch(`${BASE_URL}/reports`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(complaintData)
+      const res = await fetch(`${BASE_URL}/reports/${id}`, {
+        headers: getAuthHeaders(),
       });
-      if (res.ok) return await res.json();
-    } catch {
-      console.log('Backend offline, saving complaint in local store');
-    }
-
-    const newId = 'CMP-' + Math.floor(1000 + Math.random() * 9000);
-    const newComplaint = {
-      id: newId,
-      userId: currentUserStore.id,
-      userName: currentUserStore.name,
-      userPhone: currentUserStore.phone,
-      wasteType: complaintData.wasteType,
-      aiSuggestedWasteType: complaintData.aiSuggestedWasteType || complaintData.wasteType,
-      issueType: complaintData.issueType,
-      description: complaintData.description,
-      location: complaintData.location,
-      coordinates: complaintData.coordinates || { lat: 28.6139, lng: 77.209 },
-      landmark: complaintData.landmark || '',
-      severity: complaintData.severity || 'Medium',
-      photoUrl: complaintData.photoUrl || 'https://images.unsplash.com/photo-1530587191325-3db32d826c18?auto=format&fit=crop&w=800&q=80',
-      status: 'Pending',
-      resolutionNotes: '',
-      reportedAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
-      qualifiesForBadge: true,
-      smsSent: true
-    };
-
-    complaintsStore.unshift(newComplaint);
-
-    // Update user complaint count & badge calculation
-    currentUserStore.qualifyingComplaints += 1;
-    const cnt = currentUserStore.qualifyingComplaints;
-    if (cnt >= 10) currentUserStore.recognition = 'Gold';
-    else if (cnt >= 5) currentUserStore.recognition = 'Silver';
-    else if (cnt >= 3) currentUserStore.recognition = 'Bronze';
-    else currentUserStore.recognition = 'No medal yet';
-
-    if (cnt >= 3) currentUserStore.certificateEligible = true;
-
-    // Add SMS Notification
-    notificationsStore.unshift({
-      id: 'notif_' + Date.now(),
-      title: 'Report Submitted (SMS Sent) 📱',
-      message: `Complaint ${newId} received! SMS confirmation dispatched to ${currentUserStore.phone}.`,
-      timestamp: new Date().toISOString(),
-      read: false,
-      type: 'complaint'
-    });
-
-    return {
-      success: true,
-      complaint: newComplaint,
-      smsStatus: 'Sent successfully to ' + currentUserStore.phone,
-      message: 'Waste report submitted successfully!'
-    };
-  },
-
-  updateComplaintStatus: async (id, status, notes = '') => {
-    try {
-      const res = await fetch(`${BASE_URL}/reports/${id}/status`, {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ status, resolutionNotes: notes })
-      });
-      if (res.ok) return await res.json();
-    } catch {
-      console.log('Mock complaint status update');
-    }
-
-    const idx = complaintsStore.findIndex((c) => c.id === id);
-    if (idx !== -1) {
-      complaintsStore[idx].status = status;
-      complaintsStore[idx].resolutionNotes = notes || complaintsStore[idx].resolutionNotes;
-      complaintsStore[idx].updatedAt = new Date().toISOString();
-
-      if (status === 'Rejected') {
-        complaintsStore[idx].qualifiesForBadge = false;
+      if (res.ok) {
+        const json = await res.json();
+        const report = json.data?.report || json.data;
+        return report ? normalizeReport(report) : null;
       }
-
-      notificationsStore.unshift({
-        id: 'notif_' + Date.now(),
-        title: `Complaint Status: ${status}`,
-        message: `Complaint ${id} status updated to "${status}". SMS sent to citizen.`,
-        timestamp: new Date().toISOString(),
-        read: false,
-        type: 'complaint'
-      });
+    } catch {
+      console.log('Backend unavailable – complaint detail null');
     }
-
-    return { success: true, complaint: complaintsStore[idx] };
+    return null;
   },
 
-  // --- PICKUP REQUESTS ---
+  /**
+   * Create a waste report.
+   * The backend requires:
+   *   - wastePhoto file (field: wastePhoto) OR a wastePhotoUrl string
+   *   - latitude (Number)
+   *   - longitude (Number)
+   *   - address (String)
+   *   - wasteType, issueType, severity
+   *   - description?, landmark?
+   *
+   * @param {Object} fields  Plain fields (strings / numbers)
+   * @param {File|null} photoFile  The image file (optional if photoUrl provided)
+   */
+  createComplaint: async (fields, photoFile) => {
+    const formData = new FormData();
+
+    // Required fields
+    formData.append('wasteType', fields.wasteType);
+    formData.append('issueType', fields.issueType);
+    formData.append('severity', fields.severity);
+    formData.append('address', fields.address || fields.location || '');
+    formData.append('latitude', String(fields.latitude ?? 28.6139));
+    formData.append('longitude', String(fields.longitude ?? 77.209));
+
+    // Optional fields
+    if (fields.description) formData.append('description', fields.description);
+    if (fields.landmark) formData.append('landmark', fields.landmark);
+
+    // Photo: prefer file upload, fallback to URL
+    if (photoFile instanceof File || photoFile instanceof Blob) {
+      formData.append('wastePhoto', photoFile);
+    } else if (fields.wastePhotoUrl || fields.photoUrl) {
+      formData.append('wastePhotoUrl', fields.wastePhotoUrl || fields.photoUrl);
+    }
+
+    const res = await fetch(`${BASE_URL}/reports`, {
+      method: 'POST',
+      headers: getAuthHeaders(),
+      body: formData,
+    });
+    const json = await res.json();
+    if (!res.ok || !json.success) {
+      throw new Error(json.message || 'Failed to submit waste report.');
+    }
+    const report = json.data?.report || json.data;
+    return {
+      complaint: normalizeReport(report),
+      smsStatus: 'Sent',
+      success: true,
+    };
+  },
+
+  // PATCH /api/reports/:id/status  (admin only)
+  updateComplaintStatus: async (id, status, resolutionNotes = '') => {
+    const res = await fetch(`${BASE_URL}/reports/${id}/status`, {
+      method: 'PATCH',
+      headers: {
+        'Content-Type': 'application/json',
+        ...getAuthHeaders(),
+      },
+      body: JSON.stringify({ status, resolutionDetails: resolutionNotes }),
+    });
+    const json = await res.json();
+    if (!res.ok || !json.success) {
+      throw new Error(json.message || 'Failed to update complaint status');
+    }
+    return json.data;
+  },
+
+  // PATCH /api/reports/:id/assign  (admin only)
+  assignReport: async (id, assignedTo) => {
+    const res = await fetch(`${BASE_URL}/reports/${id}/assign`, {
+      method: 'PATCH',
+      headers: {
+        'Content-Type': 'application/json',
+        ...getAuthHeaders(),
+      },
+      body: JSON.stringify({ assignedTo }),
+    });
+    const json = await res.json();
+    if (!res.ok || !json.success) {
+      throw new Error(json.message || 'Failed to assign report');
+    }
+    return json.data;
+  },
+
+  // ─── PICKUP REQUESTS ──────────────────────────────────────────
+  // Citizen: GET /api/pickups/my-pickups
   getPickups: async () => {
     try {
-      const res = await fetch(`${BASE_URL}/pickup`);
-      if (res.ok) return await res.json();
+      const res = await fetch(`${BASE_URL}/pickups/my-pickups`, {
+        headers: getAuthHeaders(),
+      });
+      if (res.ok) {
+        const json = await res.json();
+        const pickups = json.data?.pickups || json.data || json;
+        return Array.isArray(pickups) ? pickups.map(normalizePickup) : [];
+      }
     } catch {
-      console.log('Using mock pickup store');
+      console.log('Backend unavailable – pickups empty');
     }
-    return pickupsStore;
+    return [];
   },
 
-  createPickup: async (pickupData) => {
+  // Admin: GET /api/pickups/admin/all
+  getAllPickupsAdmin: async () => {
     try {
-      const res = await fetch(`${BASE_URL}/pickup`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(pickupData)
+      const res = await fetch(`${BASE_URL}/pickups/admin/all`, {
+        headers: getAuthHeaders(),
       });
-      if (res.ok) return await res.json();
+      if (res.ok) {
+        const json = await res.json();
+        const pickups = json.data?.pickups || json.data || json;
+        return Array.isArray(pickups) ? pickups.map(normalizePickup) : [];
+      }
     } catch {
-      console.log('Mock create pickup');
+      console.log('Backend unavailable – admin pickups empty');
     }
+    return [];
+  },
 
-    const newId = 'PU-' + Math.floor(100 + Math.random() * 900);
-    const newPickup = {
-      id: newId,
-      userId: currentUserStore.id,
-      userName: currentUserStore.name,
+  // POST /api/pickups
+  createPickup: async (pickupData) => {
+    const payload = {
       wasteType: pickupData.wasteType,
-      location: pickupData.location,
-      address: pickupData.address,
+      latitude: Number(pickupData.latitude ?? 28.6139),
+      longitude: Number(pickupData.longitude ?? 77.209),
+      address: pickupData.address || pickupData.location || '',
       preferredDate: pickupData.preferredDate,
       preferredTime: pickupData.preferredTime,
       additionalDetails: pickupData.additionalDetails || '',
-      status: 'Pending',
-      createdAt: new Date().toISOString()
     };
-
-    pickupsStore.unshift(newPickup);
-
-    notificationsStore.unshift({
-      id: 'notif_' + Date.now(),
-      title: 'Pickup Request Received 🚛',
-      message: `Waste pickup request ${newId} registered. SMS update will follow assignment.`,
-      timestamp: new Date().toISOString(),
-      read: false,
-      type: 'pickup'
+    const res = await fetch(`${BASE_URL}/pickups`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        ...getAuthHeaders(),
+      },
+      body: JSON.stringify(payload),
     });
-
-    return { success: true, pickup: newPickup };
+    const json = await res.json();
+    if (!res.ok || !json.success) {
+      throw new Error(json.message || 'Failed to create pickup request');
+    }
+    const pickup = json.data?.pickup || json.data;
+    return { pickup: normalizePickup(pickup), success: true };
   },
 
+  // PATCH /api/pickups/:id/status  (admin only)
   updatePickupStatus: async (id, status) => {
-    try {
-      const res = await fetch(`${BASE_URL}/pickup/${id}/status`, {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ status })
-      });
-      if (res.ok) return await res.json();
-    } catch {
-      console.log('Mock update pickup status');
+    const res = await fetch(`${BASE_URL}/pickups/${id}/status`, {
+      method: 'PATCH',
+      headers: {
+        'Content-Type': 'application/json',
+        ...getAuthHeaders(),
+      },
+      body: JSON.stringify({ status }),
+    });
+    const json = await res.json();
+    if (!res.ok || !json.success) {
+      throw new Error(json.message || 'Failed to update pickup status');
     }
-
-    const idx = pickupsStore.findIndex((p) => p.id === id);
-    if (idx !== -1) {
-      pickupsStore[idx].status = status;
-      notificationsStore.unshift({
-        id: 'notif_' + Date.now(),
-        title: `Pickup ${status}`,
-        message: `Your pickup request ${id} is now ${status}. SMS dispatched.`,
-        timestamp: new Date().toISOString(),
-        read: false,
-        type: 'pickup'
-      });
-    }
-    return { success: true, pickup: pickupsStore[idx] };
+    return json.data;
   },
 
-  // --- QUIZZES & POINTS ---
+  // ─── QUIZZES ──────────────────────────────────────────────────
+  // GET /api/quizzes
   getQuizzes: async () => {
+    try {
+      const res = await fetch(`${BASE_URL}/quizzes`, {
+        headers: getAuthHeaders(),
+      });
+      if (res.ok) {
+        const json = await res.json();
+        return json.data?.quizzes || json.data || MOCK_QUIZZES;
+      }
+    } catch {
+      console.log('Backend unavailable – quiz fallback');
+    }
     return MOCK_QUIZZES;
   },
 
+  // POST /api/quizzes/:id/submit
   submitQuizAttempt: async (quizId, answers) => {
+    try {
+      const res = await fetch(`${BASE_URL}/quizzes/${quizId}/submit`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          ...getAuthHeaders(),
+        },
+        body: JSON.stringify({ answers }),
+      });
+      if (res.ok) {
+        const json = await res.json();
+        return json.data || json;
+      }
+    } catch {
+      console.log('Backend unavailable – quiz submit fallback');
+    }
+    // Local fallback scoring
     const quiz = MOCK_QUIZZES.find((q) => q.id === quizId) || MOCK_QUIZZES[0];
     let score = 0;
-    const breakdown = quiz.questions.map((q, idx) => {
+    const breakdown = (quiz?.questions || []).map((q, idx) => {
       const isCorrect = answers[idx] === q.correctAnswer;
-      if (isCorrect) score += Math.round(quiz.points / quiz.questions.length);
-      return {
-        questionId: q.id,
-        userAnswer: answers[idx],
-        correctAnswer: q.correctAnswer,
-        isCorrect,
-        explanation: q.explanation
-      };
+      if (isCorrect) score += Math.round((quiz.points || 50) / (quiz.questions?.length || 5));
+      return { questionId: q.id, userAnswer: answers[idx], correctAnswer: q.correctAnswer, isCorrect, explanation: q.explanation };
     });
-
-    currentUserStore.points += score;
-
-    notificationsStore.unshift({
-      id: 'notif_' + Date.now(),
-      title: `Quiz Completed! +${score} Points 🎉`,
-      message: `You earned ${score} points in "${quiz.title}". Total points: ${currentUserStore.points}.`,
-      timestamp: new Date().toISOString(),
-      read: false,
-      type: 'quiz'
-    });
-
-    return {
-      success: true,
-      score,
-      maxPoints: quiz.points,
-      pointsEarned: score,
-      breakdown,
-      totalPoints: currentUserStore.points
-    };
+    return { success: true, score, maxPoints: quiz?.points || 50, pointsEarned: score, breakdown };
   },
 
-  // --- CERTIFICATES ---
-  getCertificateStatus: async () => {
-    return {
-      eligible: currentUserStore.certificateEligible,
-      issued: currentUserStore.certificateIssued,
-      certificateId: currentUserStore.certificateId,
-      issueDate: currentUserStore.certificateIssueDate,
-      qualifyingCount: currentUserStore.qualifyingComplaints,
-      recognitionLevel: currentUserStore.recognition,
-      points: currentUserStore.points
-    };
-  },
-
-  issueCertificateByAdmin: async (userId) => {
-    currentUserStore.certificateIssued = true;
-    currentUserStore.certificateId = 'WS-2026-' + Math.floor(10000 + Math.random() * 90000);
-    currentUserStore.certificateIssueDate = new Date().toISOString().split('T')[0];
-
-    notificationsStore.unshift({
-      id: 'notif_' + Date.now(),
-      title: 'Official Certificate Issued! 📜',
-      message: `Your Waste Management & Civic Recognition Certificate has been approved and issued by Admin!`,
-      timestamp: new Date().toISOString(),
-      read: false,
-      type: 'certificate'
-    });
-
-    return {
-      success: true,
-      certificateId: currentUserStore.certificateId,
-      message: 'Certificate issued successfully.'
-    };
-  },
-
-  // --- ADMIN VERIFICATIONS ---
-  getAdminVerifications: async () => {
-    return verificationsStore;
-  },
-
-  updateAdminVerification: async (id, status) => {
-    const idx = verificationsStore.findIndex((v) => v.id === id);
-    if (idx !== -1) {
-      verificationsStore[idx].status = status;
-      if (verificationsStore[idx].email === MOCK_ADMIN.email) {
-        MOCK_ADMIN.verificationStatus = status;
+  // ─── POINTS ───────────────────────────────────────────────────
+  // GET /api/points/my-points
+  getMyPoints: async () => {
+    try {
+      const res = await fetch(`${BASE_URL}/points/my-points`, {
+        headers: getAuthHeaders(),
+      });
+      if (res.ok) {
+        const json = await res.json();
+        return json.data || { totalPoints: 0, history: [] };
       }
+    } catch {
+      console.log('Points backend unavailable');
     }
-    return { success: true, verification: verificationsStore[idx] };
+    return { totalPoints: 0, history: [] };
   },
 
-  // --- NOTIFICATIONS & HOTSPOTS ---
+  // ─── RECOGNITION / BADGES ─────────────────────────────────────
+  // GET /api/recognition/my-recognition
+  getMyRecognition: async () => {
+    try {
+      const res = await fetch(`${BASE_URL}/recognition/my-recognition`, {
+        headers: getAuthHeaders(),
+      });
+      if (res.ok) {
+        const json = await res.json();
+        return json.data || { level: null, qualifyingComplaints: 0 };
+      }
+    } catch {
+      console.log('Recognition backend unavailable');
+    }
+    return { level: null, qualifyingComplaints: 0 };
+  },
+
+  // ─── CERTIFICATES ─────────────────────────────────────────────
+  // GET /api/certificates/eligibility
+  getCertificateStatus: async () => {
+    try {
+      const res = await fetch(`${BASE_URL}/certificates/eligibility`, {
+        headers: getAuthHeaders(),
+      });
+      if (res.ok) {
+        const json = await res.json();
+        return json.data || { eligible: false, issued: false };
+      }
+    } catch {
+      console.log('Certificates backend unavailable');
+    }
+    return { eligible: false, issued: false };
+  },
+
+  // GET /api/certificates/my-certificates
+  getMyCertificates: async () => {
+    try {
+      const res = await fetch(`${BASE_URL}/certificates/my-certificates`, {
+        headers: getAuthHeaders(),
+      });
+      if (res.ok) {
+        const json = await res.json();
+        return json.data?.certificates || json.data || [];
+      }
+    } catch {
+      console.log('My certificates backend unavailable');
+    }
+    return [];
+  },
+
+  // POST /api/certificates/admin/issue/:userId  (admin only)
+  issueCertificateByAdmin: async (userId) => {
+    const res = await fetch(`${BASE_URL}/certificates/admin/issue/${userId}`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        ...getAuthHeaders(),
+      },
+    });
+    const json = await res.json();
+    if (!res.ok || !json.success) {
+      throw new Error(json.message || 'Failed to issue certificate');
+    }
+    return json.data;
+  },
+
+  // ─── ADMIN VERIFICATIONS ──────────────────────────────────────
+  // GET /api/admin/verifications
+  getAdminVerifications: async () => {
+    try {
+      const res = await fetch(`${BASE_URL}/admin/verifications`, {
+        headers: getAuthHeaders(),
+      });
+      if (res.ok) {
+        const json = await res.json();
+        return json.data?.verifications || json.data || [];
+      }
+    } catch {
+      console.log('Admin verifications backend unavailable');
+    }
+    return [];
+  },
+
+  // PATCH /api/admin/verifications/:id/status
+  updateAdminVerification: async (id, status) => {
+    const res = await fetch(`${BASE_URL}/admin/verifications/${id}/status`, {
+      method: 'PATCH',
+      headers: {
+        'Content-Type': 'application/json',
+        ...getAuthHeaders(),
+      },
+      body: JSON.stringify({ status }),
+    });
+    const json = await res.json();
+    if (!res.ok || !json.success) {
+      throw new Error(json.message || 'Failed to update verification');
+    }
+    return json.data;
+  },
+
+  // ─── NOTIFICATIONS ────────────────────────────────────────────
+  // GET /api/notifications
   getNotifications: async () => {
-    return notificationsStore;
+    try {
+      const res = await fetch(`${BASE_URL}/notifications`, {
+        headers: getAuthHeaders(),
+      });
+      if (res.ok) {
+        const json = await res.json();
+        const notifs = json.data?.notifications || json.data || [];
+        return Array.isArray(notifs) ? notifs.map(normalizeNotification) : MOCK_NOTIFICATIONS;
+      }
+    } catch {
+      console.log('Notifications backend unavailable');
+    }
+    return MOCK_NOTIFICATIONS;
   },
 
+  // PATCH /api/notifications/read-all
   markNotificationsRead: async () => {
-    notificationsStore = notificationsStore.map((n) => ({ ...n, read: true }));
+    try {
+      const res = await fetch(`${BASE_URL}/notifications/read-all`, {
+        method: 'PATCH',
+        headers: getAuthHeaders(),
+      });
+      if (res.ok) return { success: true };
+    } catch {
+      console.log('Mark read backend unavailable');
+    }
     return { success: true };
   },
 
-  getWasteHotspots: async () => {
-    return MOCK_HOTSPOTS;
+  // PATCH /api/notifications/:id/read
+  markNotificationRead: async (id) => {
+    try {
+      const res = await fetch(`${BASE_URL}/notifications/${id}/read`, {
+        method: 'PATCH',
+        headers: getAuthHeaders(),
+      });
+      if (res.ok) return { success: true };
+    } catch {
+      console.log('Mark single read backend unavailable');
+    }
+    return { success: true };
   },
 
-  getCurrentUser: () => currentUserStore
+  // ─── ANALYTICS (Admin only) ───────────────────────────────────
+  // GET /api/analytics/dashboard-metrics
+  getDashboardMetrics: async () => {
+    try {
+      const res = await fetch(`${BASE_URL}/analytics/dashboard-metrics`, {
+        headers: getAuthHeaders(),
+      });
+      if (res.ok) {
+        const json = await res.json();
+        return json.data || null;
+      }
+    } catch {
+      console.log('Analytics backend unavailable');
+    }
+    return null;
+  },
+
+  // GET /api/analytics/waste-hotspots
+  getWasteHotspots: async () => {
+    try {
+      const res = await fetch(`${BASE_URL}/analytics/waste-hotspots`, {
+        headers: getAuthHeaders(),
+      });
+      if (res.ok) {
+        const json = await res.json();
+        return json.data?.hotspots || json.data || MOCK_HOTSPOTS;
+      }
+    } catch {
+      console.log('Hotspots backend unavailable');
+    }
+    return MOCK_HOTSPOTS;
+  },
 };

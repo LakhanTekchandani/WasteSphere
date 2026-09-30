@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
+import { motion, AnimatePresence } from 'framer-motion';
 import { api } from '../services/api';
 import { BorderGlowCard } from '../components/common/BorderGlowCard';
 import { LoadingSpinner } from '../components/common/LoadingSpinner';
@@ -38,32 +39,39 @@ export const ComplaintsPage = () => {
   });
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6 bg-[#0b141a]">
       {/* Header */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+      <motion.div 
+        initial={{ opacity: 0, y: -10 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.3 }}
+        className="flex flex-col md:flex-row md:items-center justify-between gap-4"
+      >
         <div>
           <h1 className="text-3xl font-extrabold text-white">Complaint Lifecycle Tracking</h1>
-          <p className="text-slate-300 text-sm">Follow real-time municipal updates and status changes for reported issues.</p>
+          <p className="text-[#8696a0] text-sm">Follow real-time municipal updates and status changes for reported issues.</p>
         </div>
 
-        <Link
-          to="/report"
-          className="px-5 py-2.5 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-white font-bold text-sm shadow-lg shadow-emerald-500/25 flex items-center gap-2 self-start md:self-auto"
-        >
-          + Report New Issue
-        </Link>
-      </div>
+        <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
+          <Link
+            to="/report"
+            className="px-5 py-2.5 rounded-xl bg-[#00a884] hover:bg-[#00a884]/90 text-[#111b21] font-bold text-sm shadow-lg shadow-[#00a884]/20 flex items-center gap-2 self-start md:self-auto"
+          >
+            + Report New Issue
+          </Link>
+        </motion.div>
+      </motion.div>
 
       {/* Filter & Search Bar */}
-      <div className="flex flex-col sm:flex-row items-center justify-between gap-4 p-4 rounded-2xl glass-panel border border-emerald-500/20">
+      <div className="flex flex-col sm:flex-row items-center justify-between gap-4 p-4 rounded-2xl glass-panel border border-[#2a3942]">
         <div className="relative w-full sm:w-72">
-          <Search className="w-4 h-4 absolute left-3 top-3 text-slate-400" />
+          <Search className="w-4 h-4 absolute left-3 top-3 text-[#8696a0]" />
           <input
             type="text"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             placeholder="Search by ID, category, or location..."
-            className="w-full pl-9 pr-4 py-2 rounded-xl bg-emerald-950/40 border border-emerald-500/20 text-xs text-white focus:outline-none focus:border-emerald-500"
+            className="w-full pl-9 pr-4 py-2 rounded-xl bg-[#111b21] border border-[#2a3942] text-xs text-[#e9edef] focus:outline-none focus:border-[#00a884]"
           />
         </div>
 
@@ -74,8 +82,8 @@ export const ComplaintsPage = () => {
               onClick={() => setFilter(st)}
               className={`px-3 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap transition-colors ${
                 filter === st
-                  ? 'bg-emerald-500 text-white'
-                  : 'bg-emerald-950/30 text-slate-400 hover:text-white'
+                  ? 'bg-[#00a884] text-[#111b21] font-bold shadow-md'
+                  : 'bg-[#111b21] text-[#8696a0] hover:text-[#e9edef]'
               }`}
             >
               {st}
@@ -87,9 +95,9 @@ export const ComplaintsPage = () => {
       {/* Complaints List */}
       <div className="space-y-4">
         {filtered.length === 0 ? (
-          <BorderGlowCard className="p-12 text-center text-slate-400 space-y-3">
-            <FileText className="w-12 h-12 text-slate-600 mx-auto" />
-            <p className="text-base font-semibold text-slate-300">No complaints matching filter criteria.</p>
+          <BorderGlowCard className="p-12 text-center text-[#8696a0] space-y-3">
+            <FileText className="w-12 h-12 text-[#2a3942] mx-auto" />
+            <p className="text-base font-semibold text-[#e9edef]">No complaints matching filter criteria.</p>
             <p className="text-xs">Try selecting a different status filter or search term.</p>
           </BorderGlowCard>
         ) : (
@@ -101,15 +109,15 @@ export const ComplaintsPage = () => {
                   <img
                     src={cmp.photoUrl}
                     alt={cmp.issueType}
-                    className="w-full h-32 object-cover rounded-xl border border-emerald-500/20"
+                    className="w-full h-32 object-cover rounded-xl border border-[#2a3942]"
                   />
                 </div>
 
                 {/* Details */}
                 <div className="lg:col-span-6 space-y-2">
                   <div className="flex items-center gap-2">
-                    <span className="font-mono font-bold text-sm text-emerald-400">{cmp.id}</span>
-                    <span className="text-xs px-2.5 py-0.5 rounded-full bg-emerald-950 border border-emerald-500/30 text-emerald-300">
+                    <span className="font-mono font-bold text-sm text-[#25d366]">{cmp.id}</span>
+                    <span className="text-xs px-2.5 py-0.5 rounded-full bg-[#12332a] border border-[#00a884]/30 text-[#25d366]">
                       {cmp.wasteType}
                     </span>
                     {cmp.qualifiesForBadge && (
@@ -120,13 +128,13 @@ export const ComplaintsPage = () => {
                   </div>
 
                   <h3 className="text-lg font-bold text-white">{cmp.issueType}</h3>
-                  <p className="text-xs text-slate-300 flex items-center gap-1.5">
-                    <MapPin className="w-3.5 h-3.5 text-emerald-400 shrink-0" /> {cmp.location}
+                  <p className="text-xs text-[#8696a0] flex items-center gap-1.5">
+                    <MapPin className="w-3.5 h-3.5 text-[#25d366] shrink-0" /> {cmp.location}
                   </p>
                   {cmp.description && (
-                    <p className="text-xs text-slate-400 line-clamp-1">{cmp.description}</p>
+                    <p className="text-xs text-[#8696a0] line-clamp-1">{cmp.description}</p>
                   )}
-                  <div className="text-[11px] text-slate-500 flex items-center gap-1">
+                  <div className="text-[11px] text-[#8696a0] flex items-center gap-1">
                     <Clock className="w-3 h-3" /> Reported on {new Date(cmp.reportedAt).toLocaleDateString()}
                   </div>
                 </div>
@@ -136,23 +144,25 @@ export const ComplaintsPage = () => {
                   <span
                     className={`px-3.5 py-1 rounded-full text-xs font-bold ${
                       cmp.status === 'Resolved'
-                        ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/40'
+                        ? 'bg-[#12332a] text-[#25d366] border border-[#00a884]/40'
                         : cmp.status === 'In Progress' || cmp.status === 'Assigned'
                         ? 'bg-sky-500/20 text-sky-300 border border-sky-500/40'
                         : cmp.status === 'Rejected'
-                        ? 'bg-rose-500/20 text-rose-300 border border-rose-500/40'
+                        ? 'bg-[#ea4335]/20 text-[#ea4335] border border-[#ea4335]/40'
                         : 'bg-amber-500/20 text-amber-300 border border-amber-500/40'
                     }`}
                   >
                     {cmp.status}
                   </span>
 
-                  <Link
-                    to={`/complaints/${cmp.id}`}
-                    className="px-4 py-2 rounded-xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-300 hover:bg-emerald-500/20 text-xs font-semibold flex items-center gap-1.5"
-                  >
-                    View Status Timeline <ArrowRight className="w-3.5 h-3.5" />
-                  </Link>
+                  <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
+                    <Link
+                      to={`/complaints/${cmp.id}`}
+                      className="px-4 py-2 rounded-xl bg-[#12332a] border border-[#00a884]/30 text-[#25d366] hover:bg-[#00a884]/20 text-xs font-semibold flex items-center gap-1.5"
+                    >
+                      View Status Timeline <ArrowRight className="w-3.5 h-3.5" />
+                    </Link>
+                  </motion.div>
                 </div>
               </div>
             </BorderGlowCard>

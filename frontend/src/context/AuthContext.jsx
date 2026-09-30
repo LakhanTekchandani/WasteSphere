@@ -1,60 +1,71 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { api } from '../services/api';
-import { MOCK_USER, MOCK_ADMIN } from '../services/mockData';
 
 const AuthContext = createContext(null);
 
 export const AuthProvider = ({ children }) => {
-  // Try loading saved user session from localStorage
-  const [user, setUser] = useState(() => {
-    const saved = localStorage.getItem('wastesphere_user');
-    if (saved) {
-      try {
-        return JSON.parse(saved);
-      } catch {
-        return null;
+  const [user, setUser] = useState(null);
+  const [token, setToken] = useState(() => localStorage.getItem('wastesphere_token') || null);
+  const [loading, setLoading] = useState(true);
+
+  // Validate and restore user session on startup
+  useEffect(() => {
+    const initAuth = async () => {
+      const storedToken = localStorage.getItem('wastesphere_token');
+      if (storedToken) {
+        try {
+          const authenticatedUser = await api.getMe(storedToken);
+          setUser(authenticatedUser);
+          setToken(storedToken);
+          localStorage.setItem('wastesphere_user', JSON.stringify(authenticatedUser));
+        } catch (err) {
+          console.error('Session expired or invalid token:', err);
+          logout();
+        }
+      } else {
+        logout();
       }
-    }
-    // Default demo mode starts with MOCK_USER logged in as citizen for instant testing
-    return MOCK_USER;
-  });
+      setLoading(false);
+    };
 
-  const [token, setToken] = useState(() => localStorage.getItem('wastesphere_token') || 'mock_jwt_token_123');
-
-  useEffect(() => {
-    if (user) {
-      localStorage.setItem('wastesphere_user', JSON.stringify(user));
-    } else {
-      localStorage.removeItem('wastesphere_user');
-    }
-  }, [user]);
-
-  useEffect(() => {
-    if (token) {
-      localStorage.setItem('wastesphere_token', token);
-    } else {
-      localStorage.removeItem('wastesphere_token');
-    }
-  }, [token]);
+    initAuth();
+  }, []);
 
   const login = async (credentials) => {
+    // credentials: { email, password }
     const res = await api.login(credentials);
-    if (res && res.user) {
-      setUser(res.user);
+    if (res && res.token && res.user) {
       setToken(res.token);
+      setUser(res.user);
+      localStorage.setItem('wastesphere_token', res.token);
+      localStorage.setItem('wastesphere_user', JSON.stringify(res.user));
       return res;
     }
-    throw new Error('Authentication failed');
+    throw new Error(res?.message || 'Authentication failed');
   };
 
-  const register = async (formData) => {
-    const res = await api.register(formData);
-    if (res && res.user) {
-      setUser(res.user);
+  const registerCitizen = async (citizenData) => {
+    const res = await api.register(citizenData);
+    if (res && res.token && res.user) {
       setToken(res.token);
+      setUser(res.user);
+      localStorage.setItem('wastesphere_token', res.token);
+      localStorage.setItem('wastesphere_user', JSON.stringify(res.user));
       return res;
     }
-    throw new Error('Registration failed');
+    throw new Error(res?.message || 'Registration failed');
+  };
+
+  const registerAdmin = async (formData) => {
+    const res = await api.registerAdmin(formData);
+    if (res && res.token && res.user) {
+      setToken(res.token);
+      setUser(res.user);
+      localStorage.setItem('wastesphere_token', res.token);
+      localStorage.setItem('wastesphere_user', JSON.stringify(res.user));
+      return res;
+    }
+    throw new Error(res?.message || 'Admin registration failed');
   };
 
   const logout = () => {
@@ -62,14 +73,6 @@ export const AuthProvider = ({ children }) => {
     setToken(null);
     localStorage.removeItem('wastesphere_user');
     localStorage.removeItem('wastesphere_token');
-  };
-
-  const switchDemoRole = (role) => {
-    if (role === 'admin') {
-      setUser(MOCK_ADMIN);
-    } else {
-      setUser(MOCK_USER);
-    }
   };
 
   const isCitizen = user?.role === 'citizen';
@@ -83,10 +86,11 @@ export const AuthProvider = ({ children }) => {
         user,
         setUser,
         token,
+        loading,
         login,
-        register,
+        registerCitizen,
+        registerAdmin,
         logout,
-        switchDemoRole,
         isCitizen,
         isAdmin,
         isApprovedAdmin,

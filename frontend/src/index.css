@@ -1,71 +1,107 @@
 @import "tailwindcss";
 
+:root {
+  --background: #0b141a;
+  --foreground: #e9edef;
+  --card: #1f2c34;
+  --card-foreground: #e9edef;
+  --popover: #1f2c34;
+  --popover-foreground: #e9edef;
+  --primary: #00a884;
+  --primary-foreground: #111b21;
+  --secondary: #12332a;
+  --secondary-foreground: #00a884;
+  --muted: #111b21;
+  --muted-foreground: #8696a0;
+  --accent: #25d366;
+  --accent-foreground: #111b21;
+  --destructive: #ea4335;
+  --destructive-foreground: #ffffff;
+  --border: #2a3942;
+  --input: #2a3942;
+  --ring: #00a884;
+  --chart-1: #25d366;
+  --chart-2: #00a884;
+  --chart-3: #128c7e;
+  --chart-4: #34b7f1;
+  --chart-5: #075e54;
+  --radius: 0.875rem;
+}
+
 @layer base {
   body {
-    font-family: 'Inter', system-ui, -apple-system, sans-serif;
-    background-color: #05130E;
-    color: #f1f5f9;
+    font-family: 'Inter', Segoe UI, system-ui, -apple-system, sans-serif;
+    background-color: var(--background);
+    color: var(--foreground);
+    overflow-x: hidden;
   }
 
   h1, h2, h3, h4, h5, h6 {
-    font-family: 'Outfit', 'Inter', sans-serif;
+    font-family: 'Outfit', 'Inter', Segoe UI, sans-serif;
   }
 }
 
-/* Custom Scrollbar */
+/* Custom Scrollbar - TweakCN Theme */
 ::-webkit-scrollbar {
   width: 8px;
 }
 ::-webkit-scrollbar-track {
-  background: #05130E;
+  background: #0b141a;
 }
 ::-webkit-scrollbar-thumb {
-  background: #102A20;
+  background: #1f2c34;
   border-radius: 4px;
+  border: 1px solid #2a3942;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: #059669;
+  background: #00a884;
 }
 
-/* Glassmorphism utility */
+/* Glassmorphism & TweakCN Panel Utilities */
 .glass-panel {
-  background: rgba(11, 31, 23, 0.65);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  border: 1px solid rgba(52, 211, 153, 0.12);
+  background: rgba(31, 44, 52, 0.75);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  border: 1px solid rgba(42, 57, 66, 0.9);
+  box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.35);
 }
 
 .glass-card {
-  background: rgba(16, 42, 32, 0.5);
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
-  border: 1px solid rgba(52, 211, 153, 0.15);
+  background: rgba(18, 51, 42, 0.55);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 1px solid rgba(0, 168, 132, 0.2);
+  box-shadow: 0 4px 16px -1px rgba(0, 0, 0, 0.3);
 }
 
 /* Masked Heading text clip effect */
 .masked-heading-text {
-  background: linear-gradient(135deg, #ffffff 0%, #a7f3d0 40%, #10b981 70%, #047857 100%);
+  background: linear-gradient(135deg, #ffffff 0%, #a7f3d0 35%, #25d366 70%, #00a884 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
 }
 
-/* Border Glow Animation */
+/* Theme Pulsing Glows */
 @keyframes borderGlowPulse {
   0%, 100% {
-    border-color: rgba(52, 211, 153, 0.3);
-    box-shadow: 0 0 15px rgba(16, 185, 129, 0.15);
+    border-color: rgba(0, 168, 132, 0.35);
+    box-shadow: 0 0 16px rgba(0, 168, 132, 0.15);
   }
   50% {
-    border-color: rgba(52, 211, 153, 0.8);
-    box-shadow: 0 0 25px rgba(16, 185, 129, 0.35);
+    border-color: rgba(37, 211, 102, 0.75);
+    box-shadow: 0 0 24px rgba(37, 211, 102, 0.3);
   }
 }
 
 .animate-border-glow {
-  animation: borderGlowPulse 3s ease-in-out infinite;
+  animation: borderGlowPulse 3.5s ease-in-out infinite;
 }
 
 /* Ambient glow blobs */
 .emerald-radial-glow {
-  background: radial-gradient(circle at center, rgba(16, 185, 129, 0.15) 0%, rgba(5, 19, 14, 0) 70%);
+  background: radial-gradient(circle at center, rgba(0, 168, 132, 0.16) 0%, rgba(11, 20, 26, 0) 70%);
+}
+
+.green-badge-glow {
+  box-shadow: 0 0 14px rgba(37, 211, 102, 0.25);
 }

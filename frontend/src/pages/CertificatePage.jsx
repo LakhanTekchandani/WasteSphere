@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { motion } from 'framer-motion';
 import { api } from '../services/api';
 import { useAuth } from '../context/AuthContext';
 import { BorderGlowCard } from '../components/common/BorderGlowCard';
@@ -31,15 +32,20 @@ export const CertificatePage = () => {
   if (loading) return <LoadingSpinner label="Loading official certificate..." />;
 
   return (
-    <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
+    <motion.div 
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      transition={{ duration: 0.3 }}
+      className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8 bg-[#0b141a]"
+    >
       {/* Title */}
       <div className="text-center space-y-2">
-        <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/30 text-emerald-300 text-xs font-semibold">
-          <FileCheck className="w-4 h-4 text-emerald-400" />
+        <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-[#12332a] border border-[#00a884]/40 text-[#25d366] text-xs font-semibold backdrop-blur-md">
+          <FileCheck className="w-4 h-4 text-[#25d366]" />
           <span>ADMINISTRATOR-ISSUED CIVIC CREDENTIAL</span>
         </div>
         <h1 className="text-3xl font-extrabold text-white">Environmental Awareness Certificate</h1>
-        <p className="text-slate-300 text-sm max-w-lg mx-auto">
+        <p className="text-[#8696a0] text-sm max-w-lg mx-auto">
           Issued by municipal waste administrators to citizens completing required awareness and qualifying complaint criteria.
         </p>
       </div>
@@ -49,11 +55,11 @@ export const CertificatePage = () => {
           {/* Certificate Render */}
           <div
             id="certificate-print-area"
-            className="relative p-8 md:p-12 rounded-3xl bg-gradient-to-b from-[#0B241A] via-[#071913] to-[#04120C] border-4 border-amber-500/40 text-center space-y-6 shadow-2xl overflow-hidden"
+            className="relative p-8 md:p-12 rounded-3xl bg-gradient-to-b from-[#12332a] via-[#1f2c34] to-[#0b141a] border-4 border-amber-500/40 text-center space-y-6 shadow-2xl overflow-hidden"
           >
             {/* Background Seal Watermark */}
             <div className="absolute inset-0 flex items-center justify-center opacity-5 pointer-events-none">
-              <Award className="w-[450px] h-[450px] text-emerald-300" />
+              <Award className="w-[450px] h-[450px] text-[#25d366]" />
             </div>
 
             {/* Header */}
@@ -75,33 +81,33 @@ export const CertificatePage = () => {
 
             {/* Recipient */}
             <div className="space-y-2 relative z-10">
-              <p className="text-xs text-slate-400 uppercase tracking-widest">This certificate is proudly presented to</p>
-              <h3 className="text-3xl sm:text-4xl font-black text-emerald-300 font-serif">
+              <p className="text-xs text-[#8696a0] uppercase tracking-widest">This certificate is proudly presented to</p>
+              <h3 className="text-3xl sm:text-4xl font-black text-[#25d366] font-serif">
                 {user?.name || 'Aarav Sharma'}
               </h3>
-              <p className="text-xs text-slate-300 max-w-xl mx-auto leading-relaxed pt-2">
+              <p className="text-xs text-[#e9edef] max-w-xl mx-auto leading-relaxed pt-2">
                 In recognition of outstanding civic participation, waste segregation awareness, and active contribution to urban cleanliness through verified waste issue reporting on the <strong>WasteSphere Platform</strong>.
               </p>
             </div>
 
             {/* Metadata Footer */}
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 pt-8 border-t border-emerald-500/20 text-xs text-slate-400 relative z-10">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 pt-8 border-t border-[#2a3942] text-xs text-[#8696a0] relative z-10">
               <div>
-                <span className="block text-[10px] uppercase tracking-wider text-slate-500 font-semibold">
+                <span className="block text-[10px] uppercase tracking-wider text-[#8696a0] font-semibold">
                   Unique Certificate ID
                 </span>
-                <span className="font-mono font-bold text-emerald-400">{certData.certificateId}</span>
+                <span className="font-mono font-bold text-[#25d366]">{certData.certificateId}</span>
               </div>
 
               <div>
-                <span className="block text-[10px] uppercase tracking-wider text-slate-500 font-semibold">
+                <span className="block text-[10px] uppercase tracking-wider text-[#8696a0] font-semibold">
                   Date of Issuance
                 </span>
                 <span className="font-semibold text-white">{certData.issueDate}</span>
               </div>
 
               <div>
-                <span className="block text-[10px] uppercase tracking-wider text-slate-500 font-semibold">
+                <span className="block text-[10px] uppercase tracking-wider text-[#8696a0] font-semibold">
                   Issuing Authority
                 </span>
                 <span className="font-semibold text-white">Department of Municipal Waste Affairs</span>
@@ -111,12 +117,14 @@ export const CertificatePage = () => {
 
           {/* Action Buttons */}
           <div className="flex justify-center gap-4">
-            <button
+            <motion.button
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
               onClick={handlePrint}
-              className="px-6 py-3 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-white font-bold text-xs shadow-lg flex items-center gap-2"
+              className="px-6 py-3 rounded-xl bg-[#00a884] hover:bg-[#00a884]/90 text-[#111b21] font-bold text-xs shadow-lg flex items-center gap-2"
             >
               <Printer className="w-4 h-4" /> Print / Save Certificate PDF
-            </button>
+            </motion.button>
           </div>
         </div>
       ) : (
@@ -124,15 +132,15 @@ export const CertificatePage = () => {
           <div className="w-12 h-12 rounded-full bg-amber-500/20 text-amber-400 flex items-center justify-center mx-auto">
             <Sparkles className="w-6 h-6" />
           </div>
-          <h3 className="text-xl font-bold text-white">Certificate Pending Issuance</h3>
-          <p className="text-xs text-slate-300 max-w-md mx-auto">
-            You have completed required awareness milestones! Your certificate application is currently queued for administrator approval and issuance.
+          <h3 className="text-xl font-bold text-white">Certificate Status Evaluation</h3>
+          <p className="text-xs text-[#8696a0] max-w-md mx-auto">
+            Maintain active reporting and high quiz accuracy. Your certificate application is evaluated automatically as your reports are resolved.
           </p>
-          <div className="text-xs font-semibold text-emerald-400">
-            Qualifying Valid Reports: {certData?.qualifyingCount} / 3 Threshold Reached
+          <div className="text-xs font-semibold text-[#25d366]">
+            Qualifying Valid Reports: {certData?.qualifyingCount || 0} / 3 Threshold Required
           </div>
         </BorderGlowCard>
       )}
-    </div>
+    </motion.div>
   );
 };
