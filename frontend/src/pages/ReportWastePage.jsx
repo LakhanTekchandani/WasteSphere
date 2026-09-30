@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
+import emailjs from '@emailjs/browser';
 import { api } from '../services/api';
 import { useAuth } from '../context/AuthContext';
 import { useToast } from '../context/ToastContext';
@@ -129,6 +130,41 @@ export const ReportWastePage = () => {
     }
   };
 
+  // ─── EmailJS: fire-and-forget email notification ───────────────────────────
+  // Called AFTER the complaint is saved. Failure is logged only — never surfaces
+  // to the user and never rolls back or re-attempts the complaint submission.
+  const sendEmailNotification = async (complaint) => {
+    const recipientEmail = user?.email || guestEmail.trim() || '';
+    const recipientName  = user?.name  || guestName.trim()  || 'WasteSphere User';
+
+    if (!recipientEmail) {
+      console.log('[EmailJS] No recipient email available — skipping notification.');
+      return;
+    }
+
+    const templateParams = {
+      name:           recipientName,
+      email:          recipientEmail,
+      complaint_id:   complaint.id || 'N/A',
+      waste_category: complaint.wasteType  || wasteType,
+      issue_category: complaint.issueType  || issueType,
+      location:       complaint.location   || location,
+      status:         complaint.status     || 'Pending',
+    };
+
+    try {
+      const result = await emailjs.send(
+        import.meta.env.VITE_EMAILJS_SERVICE_ID,
+        import.meta.env.VITE_EMAILJS_TEMPLATE_ID,
+        templateParams,
+        { publicKey: import.meta.env.VITE_EMAILJS_PUBLIC_KEY }
+      );
+      console.log('[EmailJS] Confirmation email sent:', result.status, result.text);
+    } catch (emailErr) {
+      console.error('[EmailJS] Email notification failed (complaint is still saved):', emailErr);
+    }
+  };
+
   // STEP 9: Final submission (Handles both Guest & Authenticated Users)
   const handleSubmitReport = async () => {
     if (!wasteType || !issueType || !location) {
@@ -203,7 +239,12 @@ export const ReportWastePage = () => {
         'sms',
         'SMS Confirmation Sent 📱'
       );
+
+      // Show success FIRST — email runs independently after
       setStage(5);
+
+      // Fire-and-forget EmailJS notification (exactly once per submission)
+      sendEmailNotification(res.complaint);
     } catch (err) {
       const msg = err?.message || 'Failed to submit report. Please check input data.';
       showToast(msg, 'error', 'Submission Failed');
