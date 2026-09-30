@@ -23,7 +23,11 @@ const uploadRoutes = require('./routes/uploadRoutes');
 const app = express();
 
 // Middleware
-app.use(cors());
+app.use(
+  cors({
+    origin: process.env.WASTESPHERE_FRONTEND_URL,
+  })
+);
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
