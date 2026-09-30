@@ -25,7 +25,11 @@ const app = express();
 // Middleware
 app.use(
   cors({
-    origin: process.env.WASTESPHERE_FRONTEND_URL,
+    origin: [
+      'https://wastesphere.netlify.app',
+      'http://localhost:5173',
+      'http://localhost:3000',
+    ],
   })
 );
 app.use(express.json({ limit: '10mb' }));
