@@ -397,33 +397,81 @@ export const api = {
     return MOCK_QUIZZES;
   },
 
-  // POST /api/quizzes/:id/submit
-  submitQuizAttempt: async (quizId, answers) => {
+  // POST /api/quizzes/:id/start
+  startQuizAttempt: async (quizId) => {
     try {
+      const res = await fetch(`${BASE_URL}/quizzes/${quizId}/start`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          ...getAuthHeaders(),
+        },
+        body: JSON.stringify({ quizId }),
+      });
+      if (res.ok) {
+        const json = await res.json();
+        return json.data || json;
+      }
+    } catch (e) {
+      console.log('Backend error on quiz start:', e);
+    }
+    throw new Error('Failed to start AI quiz session');
+  },
+
+  // POST /api/quizzes/:id/answer
+  answerQuizQuestion: async (quizId, attemptId, questionId, selectedAnswer) => {
+    try {
+      const res = await fetch(`${BASE_URL}/quizzes/${quizId}/answer`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          ...getAuthHeaders(),
+        },
+        body: JSON.stringify({ attemptId, questionId, selectedAnswer }),
+      });
+      if (res.ok) {
+        const json = await res.json();
+        return json.data || json;
+      }
+    } catch (e) {
+      console.log('Backend error on answer question:', e);
+    }
+    throw new Error('Failed to validate question answer');
+  },
+
+  // POST /api/quizzes/:id/submit
+  submitQuizAttempt: async (quizId, payload) => {
+    try {
+      const bodyPayload = typeof payload === 'object' && payload.attemptId
+        ? payload
+        : { answers: payload };
+
       const res = await fetch(`${BASE_URL}/quizzes/${quizId}/submit`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           ...getAuthHeaders(),
         },
-        body: JSON.stringify({ answers }),
+        body: JSON.stringify(bodyPayload),
       });
       if (res.ok) {
         const json = await res.json();
         return json.data || json;
       }
-    } catch {
-      console.log('Backend unavailable – quiz submit fallback');
+    } catch (e) {
+      console.log('Backend unavailable – quiz submit fallback', e);
     }
     // Local fallback scoring
     const quiz = MOCK_QUIZZES.find((q) => q.id === quizId) || MOCK_QUIZZES[0];
     let score = 0;
+    const userAns = typeof payload === 'object' && payload.answers ? payload.answers : payload;
     const breakdown = (quiz?.questions || []).map((q, idx) => {
-      const isCorrect = answers[idx] === q.correctAnswer;
+      const sel = userAns[q.id] || userAns[idx];
+      const isCorrect = sel === q.correctAnswer || sel === (q.correctAnswer === 0 ? 'A' : q.correctAnswer === 1 ? 'B' : q.correctAnswer === 2 ? 'C' : 'D');
       if (isCorrect) score += Math.round((quiz.points || 50) / (quiz.questions?.length || 5));
-      return { questionId: q.id, userAnswer: answers[idx], correctAnswer: q.correctAnswer, isCorrect, explanation: q.explanation };
+      return { questionId: q.id, selectedAnswer: sel, correctAnswer: q.correctAnswer, isCorrect, explanation: q.explanation };
     });
-    return { success: true, score, maxPoints: quiz?.points || 50, pointsEarned: score, breakdown };
+    return { success: true, score, pointsEarned: score, totalPoints: score, correctCount: score > 0 ? 1 : 0, totalQuestions: quiz?.questions?.length || 1, breakdown };
   },
 
   // ─── POINTS ───────────────────────────────────────────────────

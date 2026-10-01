@@ -6,7 +6,7 @@ import { useAuth } from '../context/AuthContext';
 import { useToast } from '../context/ToastContext';
 import { BorderGlowCard } from '../components/common/BorderGlowCard';
 import { LoadingSpinner } from '../components/common/LoadingSpinner';
-import { BookOpen, Sparkles, Award, CheckCircle2, XCircle, ArrowRight, RefreshCw, HelpCircle, ShieldCheck, UserPlus } from 'lucide-react';
+import { BookOpen, Sparkles, Award, CheckCircle2, XCircle, ArrowRight, RefreshCw, HelpCircle, ShieldCheck, UserPlus, Loader2 } from 'lucide-react';
 
 export const AwarenessPage = () => {
   const { user, setUser } = useAuth();
@@ -18,78 +18,68 @@ export const AwarenessPage = () => {
   const [selectedAnswers, setSelectedAnswers] = useState({});
   const [quizResult, setQuizResult] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [quizError, setQuizError] = useState(null);
 
-  useEffect(() => {
-    const fetchQuizzes = async () => {
-      try {
-        const data = await api.getQuizzes();
-        setQuizzes(data);
-      } catch (err) {
-        console.error(err);
-      } finally {
-        setLoading(false);
+  const handleStartQuiz = async (quiz) => {
+    if (!quiz) return;
+    setStartingQuizId(quiz.id);
+    setQuizError(null);
+    try {
+      const result = await api.startQuizAttempt(quiz.id);
+      if (!result || !Array.isArray(result.questions) || result.questions.length === 0) {
+        throw new Error('Questions failed to load for selected quiz.');
       }
-    };
-    fetchQuizzes();
-  }, []);
-
-  const handleStartQuiz = (quiz) => {
-    setActiveQuiz(quiz);
-    setCurrentQuestionIdx(0);
-    setSelectedAnswers({});
-    setQuizResult(null);
+      setActiveQuiz(result);
+      setCurrentQuestionIdx(0);
+      setSelectedAnswers({});
+      setQuizResult(null);
+    } catch (err) {
+      console.error('Quiz start error:', err);
+      setQuizError({
+        quiz,
+        message: 'Quiz questions could not be loaded right now. Please try again.'
+      });
+      showToast('Failed to start quiz session. Please try again.', 'error');
+    } finally {
+      setStartingQuizId(null);
+    }
   };
 
-  const handleSelectOption = (optionIdx) => {
+  const handleSelectOption = (optId) => {
+    if (!activeQuiz || !activeQuiz.questions) return;
+    const currentQ = activeQuiz.questions[currentQuestionIdx];
+    if (!currentQ) return;
+
     setSelectedAnswers((prev) => ({
       ...prev,
-      [currentQuestionIdx]: optionIdx
+      [currentQ.id]: optId
     }));
   };
 
   const handleSubmitQuiz = async () => {
     if (!activeQuiz) return;
+    setSubmitting(true);
+    try {
+      const result = await api.submitQuizAttempt(activeQuiz.quizId || activeQuiz.id, {
+        attemptId: activeQuiz.attemptId,
+        answers: selectedAnswers
+      });
 
-    // If authenticated, persist to backend
-    if (user) {
-      try {
-        const result = await api.submitQuizAttempt(activeQuiz.id, selectedAnswers);
-        setQuizResult(result);
-        setUser((prev) => ({ ...prev, points: result.totalPoints }));
-        showToast(`Quiz Completed! You earned +${result.pointsEarned || result.score} points.`, 'success', 'Points Awarded 🎉');
-      } catch (err) {
-        showToast('Failed to submit quiz to backend.', 'error');
+      setQuizResult(result);
+
+      if (user && result.totalPoints !== undefined) {
+        setUser((prev) => (prev ? { ...prev, points: result.totalPoints } : prev));
       }
-    } else {
-      // Guest User Attempt: Evaluate score locally
-      let correctCount = 0;
-      const breakdown = activeQuiz.questions.map((q, idx) => {
-        const selected = selectedAnswers[idx];
-        const isCorrect = selected === q.correctOption;
-        if (isCorrect) correctCount++;
-        return {
-          questionId: q.id,
-          selectedOption: selected,
-          correctOption: q.correctOption,
-          isCorrect,
-          explanation: q.explanation || `Option ${String.fromCharCode(65 + q.correctOption)} is the correct answer.`
-        };
-      });
 
-      const totalQ = activeQuiz.questions.length || 1;
-      const pointsEarned = Math.round((correctCount / totalQ) * (activeQuiz.points || 50));
-
-      setQuizResult({
-        score: pointsEarned,
-        pointsEarned,
-        correctCount,
-        totalQuestions: totalQ,
-        totalPoints: pointsEarned,
-        isGuest: true,
-        breakdown
-      });
-
-      showToast(`Guest Quiz Completed! Score: ${correctCount}/${totalQ} (+${pointsEarned} pts).`, 'success', 'Quiz Finished 🎉');
+      showToast(
+        `Quiz Completed! Score: ${result.correctCount}/${result.totalQuestions} (+${result.pointsEarned} pts).`,
+        'success',
+        'Quiz Finished 🎉'
+      );
+    } catch (err) {
+      showToast('Failed to submit quiz attempt to backend. Please try again.', 'error');
+    } finally {
+      setSubmitting(false);
     }
   };
 
@@ -143,6 +133,29 @@ export const AwarenessPage = () => {
           <Sparkles className="w-6 h-6 text-primary" /> Interactive Knowledge Quizzes
         </h2>
 
+        {quizError && (
+          <BorderGlowCard className="p-6 max-w-xl mx-auto space-y-4 border-destructive/50 text-center mb-6">
+            <div className="flex items-center justify-center text-destructive gap-2 font-bold text-base">
+              <XCircle className="w-5 h-5" /> Quiz Question Error
+            </div>
+            <p className="text-xs text-muted-foreground">{quizError.message}</p>
+            <div className="flex justify-center gap-3 pt-2">
+              <button
+                onClick={() => handleStartQuiz(quizError.quiz)}
+                className="px-5 py-2.5 rounded-xl bg-primary text-primary-foreground font-bold text-xs shadow-md inline-flex items-center gap-2"
+              >
+                <RefreshCw className="w-4 h-4" /> Retry Quiz
+              </button>
+              <button
+                onClick={() => setQuizError(null)}
+                className="px-4 py-2.5 rounded-xl border border-border text-foreground hover:bg-muted font-semibold text-xs"
+              >
+                Cancel
+              </button>
+            </div>
+          </BorderGlowCard>
+        )}
+
         {!activeQuiz ? (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {quizzes.map((q) => (
@@ -153,23 +166,32 @@ export const AwarenessPage = () => {
                       {q.category}
                     </span>
                     <span className="text-xs font-bold text-accent flex items-center gap-1">
-                      <Sparkles className="w-3.5 h-3.5" /> +{q.points} Points
+                      <Sparkles className="w-3.5 h-3.5" /> +{q.points || 100} Points
                     </span>
                   </div>
                   <h3 className="text-xl font-bold text-foreground">{q.title}</h3>
                   <p className="text-xs text-muted-foreground leading-relaxed">{q.description}</p>
                   <div className="text-[11px] text-muted-foreground font-semibold pt-1">
-                    {q.questions.length} Interactive Questions (MCQ, Image & Scenario)
+                    Interactive AI-Generated Questions (MCQ, Image & Scenario)
                   </div>
                 </div>
 
                 <motion.button
                   whileHover={{ scale: 1.02 }}
                   whileTap={{ scale: 0.98 }}
+                  disabled={startingQuizId === q.id}
                   onClick={() => handleStartQuiz(q)}
-                  className="w-full py-3 rounded-xl bg-primary hover:bg-primary/90 text-primary-foreground font-bold text-xs shadow-lg flex items-center justify-center gap-2"
+                  className="w-full py-3 rounded-xl bg-primary hover:bg-primary/90 text-primary-foreground font-bold text-xs shadow-lg flex items-center justify-center gap-2 disabled:opacity-50"
                 >
-                  Start Quiz Now <ArrowRight className="w-4 h-4" />
+                  {startingQuizId === q.id ? (
+                    <>
+                      <Loader2 className="w-4 h-4 animate-spin" /> Generating AI Quiz...
+                    </>
+                  ) : (
+                    <>
+                      Start Quiz Now <ArrowRight className="w-4 h-4" />
+                    </>
+                  )}
                 </motion.button>
               </BorderGlowCard>
             ))}
@@ -206,10 +228,12 @@ export const AwarenessPage = () => {
                   {/* Current Question */}
                   {(() => {
                     const currentQ = activeQuiz.questions[currentQuestionIdx];
+                    if (!currentQ) return null;
+
                     return (
                       <div className="space-y-5">
                         <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded bg-secondary text-[11px] text-primary font-mono border border-primary/30">
-                          Type: {currentQ.type}
+                          Type: {currentQ.type || 'MCQ'}
                         </div>
 
                         {currentQ.imageUrl && (
@@ -223,24 +247,30 @@ export const AwarenessPage = () => {
                         <p className="text-base font-bold text-foreground">{currentQ.question}</p>
 
                         <div className="space-y-2.5">
-                          {currentQ.options.map((opt, optIdx) => (
-                            <motion.button
-                              key={optIdx}
-                              whileHover={{ scale: 1.01 }}
-                              whileTap={{ scale: 0.99 }}
-                              onClick={() => handleSelectOption(optIdx)}
-                              className={`w-full text-left p-4 rounded-xl border text-sm font-semibold transition-all ${
-                                selectedAnswers[currentQuestionIdx] === optIdx
-                                  ? 'bg-secondary border-primary text-primary shadow-md'
-                                  : 'bg-muted/50 border-border text-foreground hover:border-primary/50'
-                              }`}
-                            >
-                              <span className="w-6 h-6 inline-flex items-center justify-center rounded-full bg-muted mr-3 text-xs text-foreground">
-                                {String.fromCharCode(65 + optIdx)}
-                              </span>
-                              {opt}
-                            </motion.button>
-                          ))}
+                          {currentQ.options.map((opt, optIdx) => {
+                            const optId = typeof opt === 'object' && opt.id ? opt.id : String.fromCharCode(65 + optIdx);
+                            const optText = typeof opt === 'object' && opt.text ? opt.text : opt;
+                            const isSelected = selectedAnswers[currentQ.id] === optId;
+
+                            return (
+                              <motion.button
+                                key={optId}
+                                whileHover={{ scale: 1.01 }}
+                                whileTap={{ scale: 0.99 }}
+                                onClick={() => handleSelectOption(optId)}
+                                className={`w-full text-left p-4 rounded-xl border text-sm font-semibold transition-all ${
+                                  isSelected
+                                    ? 'bg-secondary border-primary text-primary shadow-md'
+                                    : 'bg-muted/50 border-border text-foreground hover:border-primary/50'
+                                }`}
+                              >
+                                <span className="w-6 h-6 inline-flex items-center justify-center rounded-full bg-muted mr-3 text-xs text-foreground font-mono">
+                                  {optId}
+                                </span>
+                                {optText}
+                              </motion.button>
+                            );
+                          })}
                         </div>
                       </div>
                     );
@@ -260,7 +290,7 @@ export const AwarenessPage = () => {
                       <motion.button
                         whileHover={{ scale: 1.02 }}
                         whileTap={{ scale: 0.98 }}
-                        disabled={selectedAnswers[currentQuestionIdx] === undefined}
+                        disabled={!activeQuiz.questions[currentQuestionIdx] || selectedAnswers[activeQuiz.questions[currentQuestionIdx].id] === undefined}
                         onClick={() => setCurrentQuestionIdx((prev) => prev + 1)}
                         className="px-6 py-2.5 rounded-xl bg-primary hover:bg-primary/90 text-primary-foreground text-xs font-bold shadow-lg disabled:opacity-40"
                       >
@@ -270,11 +300,17 @@ export const AwarenessPage = () => {
                       <motion.button
                         whileHover={{ scale: 1.02 }}
                         whileTap={{ scale: 0.98 }}
-                        disabled={selectedAnswers[currentQuestionIdx] === undefined}
+                        disabled={submitting || !activeQuiz.questions[currentQuestionIdx] || selectedAnswers[activeQuiz.questions[currentQuestionIdx].id] === undefined}
                         onClick={handleSubmitQuiz}
-                        className="px-8 py-3 rounded-xl bg-primary hover:bg-primary/90 text-primary-foreground font-extrabold text-xs shadow-xl disabled:opacity-40"
+                        className="px-8 py-3 rounded-xl bg-primary hover:bg-primary/90 text-primary-foreground font-extrabold text-xs shadow-xl disabled:opacity-40 flex items-center gap-2"
                       >
-                        Submit Quiz & Calculate Score
+                        {submitting ? (
+                          <>
+                            <Loader2 className="w-4 h-4 animate-spin" /> Evaluating Score...
+                          </>
+                        ) : (
+                          'Submit Quiz & Calculate Score'
+                        )}
                       </motion.button>
                     )}
                   </div>
@@ -333,18 +369,25 @@ export const AwarenessPage = () => {
                     <h4 className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Answer Explanations:</h4>
                     {quizResult.breakdown.map((item, idx) => (
                       <div key={idx} className="p-3.5 rounded-xl bg-muted/40 border border-border text-xs space-y-1">
-                        <div className="flex items-center gap-2 font-bold">
-                          {item.isCorrect ? (
-                            <span className="text-primary flex items-center gap-1">
-                              <CheckCircle2 className="w-4 h-4" /> Question {idx + 1}: Correct!
-                            </span>
-                          ) : (
-                            <span className="text-destructive flex items-center gap-1">
-                              <XCircle className="w-4 h-4" /> Question {idx + 1}: Incorrect
-                            </span>
-                          )}
+                        <div className="flex items-center justify-between font-bold">
+                          <div className="flex items-center gap-2">
+                            {item.isCorrect ? (
+                              <span className="text-primary flex items-center gap-1">
+                                <CheckCircle2 className="w-4 h-4" /> Question {idx + 1}: Correct!
+                              </span>
+                            ) : (
+                              <span className="text-destructive flex items-center gap-1">
+                                <XCircle className="w-4 h-4" /> Question {idx + 1}: Incorrect
+                              </span>
+                            )}
+                          </div>
+                          <span className="text-[10px] font-mono text-muted-foreground">
+                            Choice: {item.selectedAnswer} | Correct: {item.correctAnswer}
+                          </span>
                         </div>
-                        <p className="text-muted-foreground text-[11px] leading-relaxed">{item.explanation}</p>
+                        <p className="text-muted-foreground text-[11px] leading-relaxed mt-1">
+                          {item.explanation}
+                        </p>
                       </div>
                     ))}
                   </div>

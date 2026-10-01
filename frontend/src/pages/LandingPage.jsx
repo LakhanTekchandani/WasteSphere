@@ -51,7 +51,7 @@ location.reload();
   };
 
   return (
-    <div className="min-h-screen bg-background text-foreground flex flex-col overflow-x-hidden">
+    <div className="min-h-screen bg-transparent text-foreground flex flex-col overflow-x-hidden">
       {/* 1. SEPARATE INTRO ANIMATION COMPONENT (Renders full-screen while introComplete is false) */}
       {!introComplete && (
         <LandingIntro onComplete={() => setIntroComplete(true)} />
@@ -273,7 +273,7 @@ location.reload();
             </section>
 
             {/* AI WASTE REPORTING SECTION */}
-            <section className="py-20 border-b border-border bg-background">
+            <section className="py-20 border-b border-border bg-transparent">
               <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
                   
@@ -422,7 +422,7 @@ location.reload();
             </section>
 
             {/* CIVIC RECOGNITION SECTION */}
-            <section className="py-20 border-b border-border bg-background">
+            <section className="py-20 border-b border-border bg-transparent">
               <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
                   

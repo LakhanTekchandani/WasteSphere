@@ -47,7 +47,7 @@ export const LoginPage = () => {
   };
 
   return (
-    <div className="min-h-[85vh] flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8 bg-background">
+    <div className="min-h-[85vh] flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8 bg-transparent">
       <motion.div 
         initial={{ opacity: 0, y: 14 }}
         animate={{ opacity: 1, y: 0 }}

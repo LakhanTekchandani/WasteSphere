@@ -167,48 +167,50 @@ export const MOCK_QUIZZES = [
     id: 'qz_101',
     title: 'Waste Segregation Masterclass',
     description: 'Master the fundamentals of Wet vs Dry waste segregation and learn proper disposal practices.',
-    category: 'Segregation',
+    category: 'Wet / Organic Waste',
     points: 100,
     questions: [
       {
-        id: 'q1',
+        id: 'q1_wet',
         type: 'MCQ',
-        question: 'Where should banana peels, vegetable scraps, and leftover cooked food be disposed of?',
+        question: 'Where should vegetable pulp, fruit peels, and leftover kitchen scraps be disposed of?',
         options: [
-          'Green Bin (Wet / Organic Waste)',
-          'Blue Bin (Dry / Recyclable Waste)',
-          'Black Bin (E-Waste)',
-          'Red Bin (Hazardous Waste)'
+          { id: 'A', text: 'Blue Bin (Dry / Recyclable Waste)' },
+          { id: 'B', text: 'Green Bin (Wet / Organic Waste)' },
+          { id: 'C', text: 'Black Bin (E-Waste Collection)' },
+          { id: 'D', text: 'Red Bin (Hazardous Waste)' }
         ],
-        correctAnswer: 0,
-        explanation: 'Organic and wet kitchen waste goes into the Green Bin for composting.'
+        correctAnswer: 'B',
+        explanation: 'Kitchen food scraps and organic waste belong in the Green Bin for composting.',
+        hint: 'Organic waste decomposes naturally.'
       },
       {
-        id: 'q2',
-        type: 'Image-based',
-        imageUrl: 'https://images.unsplash.com/photo-1550009158-9ebf69173e03?auto=format&fit=crop&w=600&q=80',
-        question: 'Identify the primary waste category shown in this image.',
-        options: [
-          'Organic Waste',
-          'E-Waste (Electronic Waste)',
-          'Hazardous Waste',
-          'Cardboard Waste'
-        ],
-        correctAnswer: 1,
-        explanation: 'Circuit boards, wires, and old electronics belong to the E-Waste category and require specialized recycling.'
-      },
-      {
-        id: 'q3',
+        id: 'q2_wet',
         type: 'Scenario-based',
-        question: 'Scenario: You have spent lithium batteries from your remote control. What is the environmentally safe way to dispose of them?',
+        question: 'Scenario: You have tea leaves and eggshells from breakfast. What is the eco-friendly disposal method?',
         options: [
-          'Burn them in open waste heap',
-          'Throw them in regular street garbage bin',
-          'Drop them off at authorized E-Waste / Hazardous collection points',
-          'Flush them down the drain'
+          { id: 'A', text: 'Mix with plastic wrappers in dry bin' },
+          { id: 'B', text: 'Add to compost or wet organic bin' },
+          { id: 'C', text: 'Flush down the sink' },
+          { id: 'D', text: 'Burn with dry leaves' }
         ],
-        correctAnswer: 2,
-        explanation: 'Batteries contain heavy metals and toxic chemicals that contaminate soil and groundwater if improperly discarded.'
+        correctAnswer: 'B',
+        explanation: 'Tea leaves and eggshells are nutrient-rich organic materials suitable for composting.',
+        hint: 'Composting creates healthy soil fertilizer.'
+      },
+      {
+        id: 'q3_wet',
+        type: 'MCQ',
+        question: 'Which of the following items is NOT suitable for the wet/organic waste stream?',
+        options: [
+          { id: 'A', text: 'Banana peels' },
+          { id: 'B', text: 'Stale bread' },
+          { id: 'C', text: 'Plastic milk pouch' },
+          { id: 'D', text: 'Spoiled vegetables' }
+        ],
+        correctAnswer: 'C',
+        explanation: 'Plastic milk pouches do not decompose organically and must go to dry recycling.',
+        hint: 'Plastics belong in dry recyclable streams.'
       }
     ]
   },
@@ -216,29 +218,124 @@ export const MOCK_QUIZZES = [
     id: 'qz_102',
     title: 'Plastic Recycling & Circular Economy',
     description: 'Test your understanding of single-use plastics, microplastics, and high-density polyethylene (HDPE).',
-    category: 'Recycling',
+    category: 'Dry / Recyclable Waste',
     points: 120,
     questions: [
       {
-        id: 'q21',
+        id: 'q1_dry',
         type: 'MCQ',
-        question: 'Which plastic code indicates PET / PETE commonly used for beverage bottles?',
-        options: ['Resin Code #1', 'Resin Code #3', 'Resin Code #6', 'Resin Code #7'],
-        correctAnswer: 0,
-        explanation: 'Resin identification code #1 stands for Polyethylene Terephthalate (PETE).'
+        question: 'Which plastic identification code indicates PET commonly used for beverage bottles?',
+        options: [
+          { id: 'A', text: 'Resin Identification Code #1 (PET/PETE)' },
+          { id: 'B', text: 'Resin Identification Code #3 (PVC)' },
+          { id: 'C', text: 'Resin Identification Code #6 (PS)' },
+          { id: 'D', text: 'Resin Identification Code #7 (OTHER)' }
+        ],
+        correctAnswer: 'A',
+        explanation: 'Resin code #1 stands for Polyethylene Terephthalate (PET), highly recyclable.',
+        hint: 'Look for code #1 on clean drinking bottles.'
       },
       {
-        id: 'q22',
+        id: 'q2_dry',
         type: 'Scenario-based',
-        question: 'Scenario: Your local neighborhood has uncollected plastic waste accumulating. What is the most effective immediate action?',
+        question: 'Scenario: Before discarding clean cardboard packaging and plastic bottles, what should you do?',
         options: [
-          'Ignore it until monsoon',
-          'Report it with photo & location on WasteSphere',
-          'Set fire to the plastic pile',
-          'Throw it into nearest river'
+          { id: 'A', text: 'Soak them in water and food waste' },
+          { id: 'B', text: 'Flatten cardboard and rinse clean plastic bottles' },
+          { id: 'C', text: 'Burn them in outdoor pile' },
+          { id: 'D', text: 'Throw them in wet compost bin' }
         ],
-        correctAnswer: 1,
-        explanation: 'Reporting via WasteSphere alerts municipal officers and qualifies you for civic recognition badges.'
+        correctAnswer: 'B',
+        explanation: 'Rinsing plastics and flattening cardboard prevents contamination and saves recycling transport space.',
+        hint: 'Rinsing prevents food contamination.'
+      },
+      {
+        id: 'q3_dry',
+        type: 'MCQ',
+        question: 'Clean tin cans, glass bottles, and dry paper should be placed in which bin?',
+        options: [
+          { id: 'A', text: 'Green Bin (Wet Waste)' },
+          { id: 'B', text: 'Blue Bin (Dry / Recyclable Waste)' },
+          { id: 'C', text: 'Black Bin (E-Waste)' },
+          { id: 'D', text: 'Red Bin (Hazardous)' }
+        ],
+        correctAnswer: 'B',
+        explanation: 'Dry recyclables like metals, clean paper, and glass belong in the Blue Bin.',
+        hint: 'Blue is the standard color for dry recyclables.'
+      }
+    ]
+  },
+  {
+    id: 'qz_103',
+    title: 'E-Waste & Electronics Safety',
+    description: 'Learn safe recycling procedures for discarded electronics, batteries, and circuit components.',
+    category: 'E-Waste & Electronics',
+    points: 150,
+    questions: [
+      {
+        id: 'q1_ewaste',
+        type: 'Scenario-based',
+        question: 'Scenario: You have old remote control lithium batteries and broken circuit boards. What is the correct action?',
+        options: [
+          { id: 'A', text: 'Throw them into kitchen wet bin' },
+          { id: 'B', text: 'Burn them in backyard' },
+          { id: 'C', text: 'Drop them at authorized E-Waste collection points' },
+          { id: 'D', text: 'Flush down drain' }
+        ],
+        correctAnswer: 'C',
+        explanation: 'Batteries and electronics contain heavy metals that require specialized e-waste collection.',
+        hint: 'E-waste requires specialized recovery.'
+      },
+      {
+        id: 'q2_ewaste',
+        type: 'MCQ',
+        question: 'Why is discarding electronic waste in municipal landfills hazardous?',
+        options: [
+          { id: 'A', text: 'It melts instantly' },
+          { id: 'B', text: 'Toxic metals like lead and mercury leach into groundwater' },
+          { id: 'C', text: 'It creates pleasant scents' },
+          { id: 'D', text: 'It attracts earthworms' }
+        ],
+        correctAnswer: 'B',
+        explanation: 'Heavy metals in e-waste poison soil and drinking water if dumped in landfills.',
+        hint: 'Think about heavy metal toxicity.'
+      }
+    ]
+  },
+  {
+    id: 'qz_104',
+    title: 'Hazardous Waste Procedures',
+    description: 'Understand safe handling for chemical cleaners, medical packaging, paint cans, and fluorescent tubes.',
+    category: 'Hazardous Waste',
+    points: 150,
+    questions: [
+      {
+        id: 'q1_haz',
+        type: 'MCQ',
+        question: 'Where should chemical cleaning solvents, paint cans, and expired medicine packaging be disposed of?',
+        options: [
+          { id: 'A', text: 'Green Organic Bin' },
+          { id: 'B', text: 'Blue Recycling Bin' },
+          { id: 'C', text: 'Red Bin (Hazardous Waste Stream)' },
+          { id: 'D', text: 'Regular street drain' }
+        ],
+        correctAnswer: 'C',
+        explanation: 'Hazardous chemicals and medical packaging require designated Red Bins for safe incineration/disposal.',
+        hint: 'Red signifies danger/hazardous waste.'
+      },
+      {
+        id: 'q2_haz',
+        type: 'Scenario-based',
+        question: 'Scenario: A broken fluorescent tube lamp contains mercury vapor. How should it be handled?',
+        options: [
+          { id: 'A', text: 'Crush it by hand' },
+          { id: 'B', text: 'Carefully seal in double plastic bag and hand over to hazardous waste handler' },
+          { id: 'C', text: 'Throw into wet compost bin' },
+          { id: 'D', text: 'Burn in open fireplace' }
+        ],
+        correctAnswer: 'B',
+        explanation: 'Fluorescent tubes contain mercury vapor requiring sealed hazardous waste disposal.',
+        hint: 'Mercury is toxic when inhaled.'
       }
     ]
   }

@@ -6,6 +6,7 @@ import { ToastProvider } from './context/ToastContext';
 import { Navbar } from './components/common/Navbar';
 import { Footer } from './components/common/Footer';
 import { GlowCursor } from './components/common/GlowCursor';
+import { MoodFieldBackground } from './components/common/MoodFieldBackground';
 
 // Pages
 import { LandingPage } from './pages/LandingPage';
@@ -52,12 +53,14 @@ const PageTransition = ({ children }) => (
 
 export function AppContent() {
   const location = useLocation();
+  const isLandingPage = location.pathname === '/';
 
   return (
-    <div className="min-h-screen bg-background text-foreground flex flex-col">
+    <div className="min-h-screen bg-transparent text-foreground flex flex-col relative">
+      <MoodFieldBackground />
       <GlowCursor />
-      <Navbar />
-      <main className="flex-grow">
+      {!isLandingPage && <Navbar />}
+      <main className="flex-grow relative z-10">
         <AnimatePresence mode="wait">
           <Routes location={location} key={location.pathname}>
             {/* Public Routes */}
@@ -86,7 +89,7 @@ export function AppContent() {
           </Routes>
         </AnimatePresence>
       </main>
-      <Footer />
+      {!isLandingPage && <Footer />}
     </div>
   );
 }
