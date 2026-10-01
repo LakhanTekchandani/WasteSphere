@@ -19,6 +19,28 @@ export const AwarenessPage = () => {
   const [quizResult, setQuizResult] = useState(null);
   const [loading, setLoading] = useState(true);
   const [quizError, setQuizError] = useState(null);
+  const [startingQuizId, setStartingQuizId] = useState(null);
+  const [submitting, setSubmitting] = useState(false);
+
+  // Fetch quiz list on mount
+  useEffect(() => {
+    let cancelled = false;
+    const fetchQuizzes = async () => {
+      try {
+        const data = await api.getQuizzes();
+        if (!cancelled) {
+          setQuizzes(Array.isArray(data) ? data : []);
+        }
+      } catch (err) {
+        console.error('Failed to load quizzes:', err);
+        if (!cancelled) setQuizzes([]);
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
+    };
+    fetchQuizzes();
+    return () => { cancelled = true; };
+  }, []);
 
   const handleStartQuiz = async (quiz) => {
     if (!quiz) return;
