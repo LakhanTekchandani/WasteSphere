@@ -168,7 +168,6 @@
 @layer base {
   * {
     @apply border-border outline-ring/50;
-    font-family: 'Bree Serif', serif;
   }
   body {
     @apply bg-background text-foreground;
