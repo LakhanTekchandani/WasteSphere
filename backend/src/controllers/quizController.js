@@ -2,7 +2,57 @@ const Quiz = require('../models/Quiz');
 const QuizQuestion = require('../models/QuizQuestion');
 const QuizAttempt = require('../models/QuizAttempt');
 const PointTransaction = require('../models/PointTransaction');
+const User = require('../models/User');
 const { successResponse, errorResponse } = require('../utils/apiResponse');
+const groqQuizService = require('../services/groqQuizService');
+
+// In-memory active quiz attempt store
+const activeQuizAttempts = new Map();
+
+// Periodic cleanup of stale attempts older than 2 hours
+setInterval(() => {
+  const twoHoursAgo = Date.now() - 2 * 60 * 60 * 1000;
+  for (const [key, attempt] of activeQuizAttempts.entries()) {
+    if (attempt.startedAt < twoHoursAgo) {
+      activeQuizAttempts.delete(key);
+    }
+  }
+}, 30 * 60 * 1000);
+
+const DEFAULT_QUIZZES = [
+  {
+    id: 'qz_101',
+    title: 'Waste Segregation Masterclass',
+    description: 'Master the fundamentals of Wet vs Dry waste segregation and learn proper disposal practices.',
+    category: 'Wet / Organic Waste',
+    points: 100,
+    questions: []
+  },
+  {
+    id: 'qz_102',
+    title: 'Plastic Recycling & Circular Economy',
+    description: 'Test your understanding of single-use plastics, microplastics, and high-density polyethylene (HDPE).',
+    category: 'Dry / Recyclable Waste',
+    points: 120,
+    questions: []
+  },
+  {
+    id: 'qz_103',
+    title: 'E-Waste & Electronics Safety',
+    description: 'Learn safe recycling procedures for discarded electronics, batteries, and circuit components.',
+    category: 'E-Waste & Electronics',
+    points: 150,
+    questions: []
+  },
+  {
+    id: 'qz_104',
+    title: 'Hazardous Waste Procedures',
+    description: 'Understand safe handling for chemical cleaners, medical packaging, paint cans, and fluorescent tubes.',
+    category: 'Hazardous Waste',
+    points: 150,
+    questions: []
+  }
+];
 
 /**
  * List active quizzes
@@ -10,183 +60,286 @@ const { successResponse, errorResponse } = require('../utils/apiResponse');
  */
 const getQuizzes = async (req, res, next) => {
   try {
-    const quizzes = await Quiz.find({ isActive: true }).sort({ createdAt: -1 });
-    
-    // Also include question count for each quiz
+    let dbQuizzes = await Quiz.find({ isActive: true }).sort({ createdAt: -1 });
+
+    if (!dbQuizzes || dbQuizzes.length === 0) {
+      return successResponse(res, 200, 'Active quizzes retrieved.', { quizzes: DEFAULT_QUIZZES });
+    }
+
     const quizzesWithCounts = await Promise.all(
-      quizzes.map(async (quiz) => {
+      dbQuizzes.map(async (quiz) => {
         const questionCount = await QuizQuestion.countDocuments({ quiz: quiz._id });
         return {
+          id: quiz._id.toString(),
           ...quiz.toObject(),
-          questionCount,
+          questionCount: questionCount || 3,
+          questions: [] // Questions are generated on demand via AI when quiz starts
         };
       })
     );
 
     return successResponse(res, 200, 'Active quizzes retrieved.', { quizzes: quizzesWithCounts });
   } catch (error) {
-    next(error);
+    return successResponse(res, 200, 'Active quizzes retrieved.', { quizzes: DEFAULT_QUIZZES });
   }
 };
 
 /**
- * Get quiz details with questions
+ * Get quiz details by ID
  * GET /api/quizzes/:id
  */
 const getQuizById = async (req, res, next) => {
   try {
-    const quiz = await Quiz.findById(req.params.id);
-    if (!quiz) {
-      return errorResponse(res, 404, 'Quiz not found.');
+    const quizId = req.params.id;
+    let targetQuiz = DEFAULT_QUIZZES.find(q => q.id === quizId);
+
+    if (!targetQuiz) {
+      const dbQuiz = await Quiz.findById(quizId);
+      if (dbQuiz) {
+        targetQuiz = {
+          id: dbQuiz._id.toString(),
+          title: dbQuiz.title,
+          description: dbQuiz.description,
+          category: dbQuiz.category,
+          points: 100,
+          questions: []
+        };
+      }
     }
 
-    const questions = await QuizQuestion.find({ quiz: quiz._id });
+    if (!targetQuiz) {
+      targetQuiz = DEFAULT_QUIZZES[0];
+    }
 
-    // If request is from normal citizen, hide `isCorrect` fields on options!
-    const isUserAdmin = req.user && req.user.role === 'admin';
-    const sanitizedQuestions = questions.map((q) => {
-      const qObj = q.toObject();
-      if (!isUserAdmin) {
-        qObj.options = qObj.options.map((opt) => ({
-          optionText: opt.optionText,
-          _id: opt._id,
-        }));
-        delete qObj.explanation; // Don't leak explanation before submission
-      }
-      return qObj;
-    });
-
-    return successResponse(res, 200, 'Quiz details retrieved.', {
-      quiz,
-      questions: sanitizedQuestions,
-    });
+    return successResponse(res, 200, 'Quiz details retrieved.', { quiz: targetQuiz, questions: [] });
   } catch (error) {
     next(error);
   }
 };
 
 /**
- * Submit Quiz Answers (Server-side evaluation)
- * POST /api/quizzes/:id/submit
- * Body: { answers: [{ questionId, selectedOptionIndex }] }
+ * Start AI Quiz Attempt
+ * POST /api/quizzes/:id/start or POST /api/quizzes/start
+ */
+const startAiQuiz = async (req, res, next) => {
+  try {
+    const quizId = req.params.id || req.body.quizId || 'qz_101';
+    let targetQuiz = DEFAULT_QUIZZES.find(q => q.id === quizId);
+
+    if (!targetQuiz) {
+      try {
+        const dbQuiz = await Quiz.findById(quizId);
+        if (dbQuiz) {
+          targetQuiz = {
+            id: dbQuiz._id.toString(),
+            title: dbQuiz.title,
+            description: dbQuiz.description,
+            category: dbQuiz.category,
+            points: 100
+          };
+        }
+      } catch (e) {
+        // Fallback to default
+      }
+    }
+
+    if (!targetQuiz) {
+      targetQuiz = DEFAULT_QUIZZES[0];
+    }
+
+    // Call Groq to generate structured questions for this category
+    const generatedQuestions = await groqQuizService.generateQuizQuestions(targetQuiz.category, 3);
+
+    const attemptId = `att_${Date.now()}_${Math.random().toString(36).substring(2, 8)}`;
+
+    // Store authoritative attempt on backend
+    activeQuizAttempts.set(attemptId, {
+      attemptId,
+      quizId: targetQuiz.id,
+      category: targetQuiz.category,
+      title: targetQuiz.title,
+      points: targetQuiz.points || 100,
+      questions: generatedQuestions, // Stores correctAnswer & explanation securely
+      answers: {},
+      startedAt: Date.now()
+    });
+
+    // Sanitize questions for client response (HIDE correctAnswer & explanation to prevent cheating)
+    const sanitizedQuestions = generatedQuestions.map(q => ({
+      id: q.id,
+      type: q.type || 'MCQ',
+      question: q.question,
+      imageUrl: q.imageUrl || '',
+      options: q.options,
+      hint: q.hint || ''
+    }));
+
+    return successResponse(res, 200, 'AI Quiz attempt started.', {
+      attemptId,
+      quizId: targetQuiz.id,
+      title: targetQuiz.title,
+      category: targetQuiz.category,
+      points: targetQuiz.points || 100,
+      questions: sanitizedQuestions
+    });
+  } catch (error) {
+    return errorResponse(res, 500, 'Failed to start AI quiz attempt. Please try again.');
+  }
+};
+
+/**
+ * Validate single question answer
+ * POST /api/quizzes/:id/answer or POST /api/quizzes/answer
+ */
+const answerQuizQuestion = async (req, res, next) => {
+  try {
+    const { attemptId, questionId, selectedAnswer } = req.body;
+
+    if (!attemptId || !questionId || !selectedAnswer) {
+      return errorResponse(res, 400, 'attemptId, questionId, and selectedAnswer are required.');
+    }
+
+    const attempt = activeQuizAttempts.get(attemptId);
+    if (!attempt) {
+      return errorResponse(res, 404, 'Quiz attempt session expired or invalid. Please restart the quiz.');
+    }
+
+    const targetQuestion = attempt.questions.find(q => q.id === questionId);
+    if (!targetQuestion) {
+      return errorResponse(res, 404, 'Question not found in current attempt.');
+    }
+
+    // Authoritative correctness evaluation
+    const formattedUserAns = selectedAnswer.toString().trim().toUpperCase();
+    const formattedCorrectAns = targetQuestion.correctAnswer.toString().trim().toUpperCase();
+    const isCorrect = (formattedUserAns === formattedCorrectAns);
+
+    // Save answer in attempt state
+    attempt.answers[questionId] = {
+      selectedAnswer: formattedUserAns,
+      isCorrect
+    };
+
+    const targetOption = targetQuestion.options.find(o => o.id === formattedUserAns);
+    const selectedText = targetOption ? targetOption.text : `Option ${formattedUserAns}`;
+    const correctOption = targetQuestion.options.find(o => o.id === formattedCorrectAns);
+    const correctText = correctOption ? correctOption.text : `Option ${formattedCorrectAns}`;
+
+    const feedback = await groqQuizService.evaluateAnswerExplanation({
+      questionText: targetQuestion.question,
+      options: targetQuestion.options,
+      correctAnswer: formattedCorrectAns,
+      selectedAnswer: formattedUserAns,
+      selectedOptionText: selectedText,
+      correctAnswerText: correctText,
+      isCorrect
+    });
+
+    return successResponse(res, 200, 'Answer evaluated.', {
+      questionId,
+      selectedAnswer: formattedUserAns,
+      isCorrect,
+      correctAnswer: formattedCorrectAns,
+      feedback: feedback || targetQuestion.explanation,
+      explanation: targetQuestion.explanation
+    });
+  } catch (error) {
+    return errorResponse(res, 500, 'Failed to evaluate question answer.');
+  }
+};
+
+/**
+ * Submit Quiz Attempt & Calculate Final Score
+ * POST /api/quizzes/:id/submit or POST /api/quizzes/submit
  */
 const submitQuizAttempt = async (req, res, next) => {
   try {
-    const quizId = req.params.id;
-    const { answers } = req.body; // Array of { questionId, selectedOptionIndex }
+    const quizId = req.params.id || req.body.quizId;
+    const { attemptId, answers } = req.body;
 
-    if (!Array.isArray(answers) || answers.length === 0) {
-      return errorResponse(res, 400, 'Answers array is required.');
-    }
+    const attempt = attemptId ? activeQuizAttempts.get(attemptId) : null;
 
-    const quiz = await Quiz.findById(quizId);
-    if (!quiz) {
-      return errorResponse(res, 404, 'Quiz not found.');
-    }
+    if (attempt) {
+      const userAnswers = answers || attempt.answers || {};
+      let correctCount = 0;
+      const totalQuestions = attempt.questions.length || 1;
+      const breakdown = [];
 
-    const questions = await QuizQuestion.find({ quiz: quizId });
-    if (questions.length === 0) {
-      return errorResponse(res, 400, 'This quiz has no questions.');
-    }
+      attempt.questions.forEach((question, idx) => {
+        let userSelected = userAnswers[question.id] || userAnswers[idx];
+        if (typeof userSelected === 'object' && userSelected.selectedAnswer) {
+          userSelected = userSelected.selectedAnswer;
+        }
 
-    let achievedScore = 0;
-    let totalPossibleScore = 0;
-    const evaluatedAnswers = [];
-    const feedbackDetails = [];
+        let formattedUserAns = '';
+        if (typeof userSelected === 'string') {
+          formattedUserAns = userSelected.trim().toUpperCase();
+        } else if (typeof userSelected === 'number') {
+          formattedUserAns = String.fromCharCode(65 + userSelected);
+        }
 
-    questions.forEach((question) => {
-      totalPossibleScore += question.points;
-      const userAns = answers.find(
-        (a) => a.questionId.toString() === question._id.toString()
-      );
+        const formattedCorrectAns = question.correctAnswer.trim().toUpperCase();
+        const isCorrect = (formattedUserAns === formattedCorrectAns);
 
-      let isCorrect = false;
-      let selectedOptionIndex = -1;
+        if (isCorrect) {
+          correctCount++;
+        }
 
-      if (userAns && typeof userAns.selectedOptionIndex === 'number') {
-        selectedOptionIndex = userAns.selectedOptionIndex;
-        const targetOption = question.options[selectedOptionIndex];
-        if (targetOption && targetOption.isCorrect) {
-          isCorrect = true;
-          achievedScore += question.points;
+        breakdown.push({
+          questionId: question.id,
+          question: question.question,
+          selectedAnswer: formattedUserAns || 'N/A',
+          correctAnswer: formattedCorrectAns,
+          isCorrect,
+          explanation: question.explanation || `Option ${formattedCorrectAns} is the correct answer.`
+        });
+      });
+
+      const accuracyPercentage = Math.round((correctCount / totalQuestions) * 100);
+      const passed = accuracyPercentage >= 70;
+      const pointsEarned = Math.round((correctCount / totalQuestions) * (attempt.points || 100));
+
+      let totalPoints = pointsEarned;
+
+      // If user is authenticated, save points and transaction
+      if (req.user) {
+        try {
+          const userDoc = await User.findById(req.user._id);
+          if (userDoc) {
+            userDoc.points = (userDoc.points || 0) + pointsEarned;
+            await userDoc.save();
+            totalPoints = userDoc.points;
+
+            await PointTransaction.create({
+              user: req.user._id,
+              points: pointsEarned,
+              source: 'QUIZ_COMPLETION',
+              description: `Passed quiz attempt (${correctCount}/${totalQuestions}): ${attempt.title}`,
+              referenceId: req.user._id
+            });
+          }
+        } catch (dbErr) {
+          console.error('[QUIZ SUBMIT] Database point record error:', dbErr.message);
         }
       }
 
-      evaluatedAnswers.push({
-        questionId: question._id,
-        selectedOptionIndex,
-        isCorrect,
+      // Cleanup attempt from memory after evaluation
+      activeQuizAttempts.delete(attemptId);
+
+      return successResponse(res, 200, 'Quiz attempt evaluated successfully.', {
+        attemptId,
+        score: pointsEarned,
+        pointsEarned,
+        totalPoints,
+        correctCount,
+        totalQuestions,
+        accuracyPercentage,
+        passed,
+        breakdown
       });
-
-      // Find correct option index for feedback
-      const correctOptionIndex = question.options.findIndex((opt) => opt.isCorrect);
-
-      feedbackDetails.push({
-        questionId: question._id,
-        questionText: question.questionText,
-        selectedOptionIndex,
-        correctOptionIndex,
-        isCorrect,
-        pointsEarned: isCorrect ? question.points : 0,
-        maxPoints: question.points,
-        explanation: question.explanation,
-      });
-    });
-
-    const scorePercentage = Math.round((achievedScore / totalPossibleScore) * 100);
-    const passed = scorePercentage >= (quiz.passingScore || 70);
-
-    // Check if user has ALREADY passed this quiz previously (prevent duplicate points abuse)
-    const existingPassedAttempt = await QuizAttempt.findOne({
-      user: req.user._id,
-      quiz: quiz._id,
-      passed: true,
-    });
-
-    let pointsAwarded = 0;
-    let pointsMessage = '';
-
-    if (passed) {
-      if (!existingPassedAttempt) {
-        // Award points equal to achieved score (e.g. 30 points)
-        pointsAwarded = achievedScore;
-        await PointTransaction.create({
-          user: req.user._id,
-          points: pointsAwarded,
-          source: 'QUIZ_COMPLETION',
-          description: `Passed quiz: ${quiz.title}`,
-          referenceId: quiz._id,
-        });
-        pointsMessage = `Congratulations! You earned ${pointsAwarded} points for passing this quiz.`;
-      } else {
-        pointsMessage = `You passed! (Note: Points were already awarded on your first passing attempt).`;
-      }
-    } else {
-      pointsMessage = `Score too low to pass (${scorePercentage}%). Passing score requirement is ${quiz.passingScore}%. Try again!`;
     }
 
-    // Save quiz attempt record
-    const attempt = await QuizAttempt.create({
-      user: req.user._id,
-      quiz: quiz._id,
-      score: achievedScore,
-      totalPossible: totalPossibleScore,
-      scorePercentage,
-      passed,
-      pointsEarned: pointsAwarded,
-      answers: evaluatedAnswers,
-    });
-
-    return successResponse(res, 200, 'Quiz attempt evaluated.', {
-      attemptId: attempt._id,
-      score: achievedScore,
-      totalPossible: totalPossibleScore,
-      accuracyPercentage: scorePercentage,
-      passed,
-      pointsEarned: pointsAwarded,
-      pointsMessage,
-      feedback: feedbackDetails,
-    });
+    return errorResponse(res, 400, 'Invalid or expired quiz attemptId. Please restart the quiz.');
   } catch (error) {
     next(error);
   }
@@ -298,6 +451,8 @@ const deleteQuizAdmin = async (req, res, next) => {
 module.exports = {
   getQuizzes,
   getQuizById,
+  startAiQuiz,
+  answerQuizQuestion,
   submitQuizAttempt,
   getMyAttempts,
   createQuizAdmin,

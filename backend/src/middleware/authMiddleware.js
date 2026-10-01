@@ -31,6 +31,26 @@ const authenticateToken = async (req, res, next) => {
 };
 
 /**
+ * Optional JWT verification: attaches user if valid token provided, but does not block guests
+ */
+const optionalAuthenticateToken = async (req, res, next) => {
+  try {
+    const authHeader = req.headers.authorization;
+    if (authHeader && authHeader.startsWith('Bearer ')) {
+      const token = authHeader.split(' ')[1];
+      const decoded = jwt.verify(token, process.env.JWT_SECRET || 'wastesphere_hackathon_super_secret_key_2026');
+      const user = await User.findById(decoded.id).select('-password');
+      if (user) {
+        req.user = user;
+      }
+    }
+  } catch (error) {
+    // Ignore invalid token for optional auth
+  }
+  next();
+};
+
+/**
  * Require specific role (e.g. 'admin' or 'citizen')
  */
 const requireRole = (role) => {
@@ -64,6 +84,7 @@ const requireApprovedAdmin = (req, res, next) => {
 
 module.exports = {
   authenticateToken,
+  optionalAuthenticateToken,
   requireRole,
   requireApprovedAdmin,
 };

@@ -17,24 +17,25 @@ const getAuthHeaders = () => {
  * Normalize a WasteReport document from MongoDB to a flat frontend shape.
  */
 const normalizeReport = (r) => ({
-  id: r._id || r.id,
-  userId: r.user?._id || r.user,
-  userName: r.user?.name || 'Unknown',
-  userPhone: r.user?.phone || '',
-  wasteType: r.wasteType,
-  issueType: r.issueType,
+  id: r._id || r.id || 'N/A',
+  userId: r.user?._id || r.user || 'N/A',
+  userName: r.user?.name || (typeof r.user === 'string' ? r.user : 'N/A'),
+  userEmail: r.user?.email || 'N/A',
+  userPhone: r.user?.phone || 'N/A',
+  wasteType: r.wasteType || 'N/A',
+  issueType: r.issueType || 'N/A',
   description: r.description || '',
-  location: r.location?.address || r.location || '',
+  location: r.location?.address || (typeof r.location === 'string' ? r.location : 'N/A'),
   latitude: r.location?.latitude,
   longitude: r.location?.longitude,
   landmark: r.landmark || '',
-  severity: r.severity,
+  severity: r.severity || 'N/A',
   photoUrl: r.wastePhoto?.url || r.photoUrl || '',
-  status: r.status,
+  status: r.status || 'Pending',
   resolutionNotes: r.resolutionDetails || r.resolutionNotes || '',
   qualifiesForBadge: r.status === 'Resolved',
-  reportedAt: r.reportedAt || r.createdAt,
-  updatedAt: r.updatedAt,
+  reportedAt: r.reportedAt || r.createdAt || null,
+  updatedAt: r.updatedAt || null,
   assignedTo: r.assignedTo || '',
 });
 
@@ -42,18 +43,20 @@ const normalizeReport = (r) => ({
  * Normalize a PickupRequest document from MongoDB.
  */
 const normalizePickup = (p) => ({
-  id: p._id || p.id,
-  userId: p.user?._id || p.user,
-  userName: p.user?.name || 'Unknown',
-  wasteType: p.wasteType,
-  address: p.address || p.location?.address || '',
+  id: p._id || p.id || 'N/A',
+  userId: p.user?._id || p.user || 'N/A',
+  userName: p.user?.name || (typeof p.user === 'string' ? p.user : 'N/A'),
+  userEmail: p.user?.email || 'N/A',
+  userPhone: p.user?.phone || 'N/A',
+  wasteType: p.wasteType || 'N/A',
+  address: p.address || p.location?.address || 'N/A',
   latitude: p.location?.latitude,
   longitude: p.location?.longitude,
-  preferredDate: p.preferredDate,
-  preferredTime: p.preferredTime || p.preferredSlot || '',
+  preferredDate: p.preferredDate ? new Date(p.preferredDate).toLocaleDateString() : 'N/A',
+  preferredTime: p.preferredTime || p.preferredSlot || 'N/A',
   additionalDetails: p.additionalDetails || p.notes || '',
-  status: p.status,
-  createdAt: p.createdAt,
+  status: p.status || 'Pending',
+  createdAt: p.createdAt || null,
 });
 
 /**
