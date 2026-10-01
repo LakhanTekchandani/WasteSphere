@@ -29,7 +29,7 @@ app.use(
   cors({
     origin: (origin, callback) => {
       const allowedOrigins = [
-        'https://wastesphere.netlify.app',
+        'https://waste-sphere-g9uj.vercel.app/',
         'https://waste-sphere.vercel.app',
         'http://localhost:5173',
         'http://localhost:3000',
