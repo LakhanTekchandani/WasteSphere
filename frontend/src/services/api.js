@@ -181,21 +181,18 @@ export const api = {
     return [];
   },
 
-  // Admin: GET /api/reports/admin/all
+  // Admin: GET /api/reports/admin/all  — throws on failure (no silent mock fallback)
   getAllReportsAdmin: async () => {
-    try {
-      const res = await fetch(`${BASE_URL}/reports/admin/all`, {
-        headers: getAuthHeaders(),
-      });
-      if (res.ok) {
-        const json = await res.json();
-        const reports = json.data?.reports || json.data || json;
-        return Array.isArray(reports) ? reports.map(normalizeReport) : [];
-      }
-    } catch {
-      console.log('Backend unavailable – admin reports empty');
+    const res = await fetch(`${BASE_URL}/reports/admin/all`, {
+      headers: getAuthHeaders(),
+    });
+    if (!res.ok) {
+      const json = await res.json().catch(() => ({}));
+      throw new Error(json.message || `Server returned ${res.status} fetching complaints.`);
     }
-    return [];
+    const json = await res.json();
+    const reports = json.data?.reports || json.data || json;
+    return Array.isArray(reports) ? reports.map(normalizeReport) : [];
   },
 
   // GET /api/reports/:id
@@ -319,21 +316,18 @@ export const api = {
     return [];
   },
 
-  // Admin: GET /api/pickups/admin/all
+  // Admin: GET /api/pickups/admin/all  — throws on failure (no silent mock fallback)
   getAllPickupsAdmin: async () => {
-    try {
-      const res = await fetch(`${BASE_URL}/pickups/admin/all`, {
-        headers: getAuthHeaders(),
-      });
-      if (res.ok) {
-        const json = await res.json();
-        const pickups = json.data?.pickups || json.data || json;
-        return Array.isArray(pickups) ? pickups.map(normalizePickup) : [];
-      }
-    } catch {
-      console.log('Backend unavailable – admin pickups empty');
+    const res = await fetch(`${BASE_URL}/pickups/admin/all`, {
+      headers: getAuthHeaders(),
+    });
+    if (!res.ok) {
+      const json = await res.json().catch(() => ({}));
+      throw new Error(json.message || `Server returned ${res.status} fetching pickups.`);
     }
-    return [];
+    const json = await res.json();
+    const pickups = json.data?.pickups || json.data || json;
+    return Array.isArray(pickups) ? pickups.map(normalizePickup) : [];
   },
 
   // POST /api/pickups
@@ -654,7 +648,7 @@ export const api = {
     return null;
   },
 
-  // GET /api/analytics/waste-hotspots
+  // GET /api/analytics/waste-hotspots  (public / citizen use — falls back to empty)
   getWasteHotspots: async () => {
     try {
       const res = await fetch(`${BASE_URL}/analytics/waste-hotspots`, {
@@ -662,11 +656,24 @@ export const api = {
       });
       if (res.ok) {
         const json = await res.json();
-        return json.data?.hotspots || json.data || MOCK_HOTSPOTS;
+        return json.data?.hotspots || json.data || [];
       }
     } catch {
       console.log('Hotspots backend unavailable');
     }
-    return MOCK_HOTSPOTS;
+    return [];
+  },
+
+  // GET /api/analytics/waste-hotspots  (admin — throws on failure, no mock fallback)
+  getWasteHotspotsAdmin: async () => {
+    const res = await fetch(`${BASE_URL}/analytics/waste-hotspots`, {
+      headers: getAuthHeaders(),
+    });
+    if (!res.ok) {
+      const json = await res.json().catch(() => ({}));
+      throw new Error(json.message || `Server returned ${res.status} fetching hotspots.`);
+    }
+    const json = await res.json();
+    return json.data?.hotspots || json.data || [];
   },
 };

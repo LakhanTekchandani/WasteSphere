@@ -28,8 +28,9 @@ export const LandingPage = () => {
   const [introComplete, setIntroComplete] = useState(() => {
     const isReplayRequested = new URLSearchParams(window.location.search).get('replay') === 'true';
     if (isReplayRequested) return false;
-    return !!sessionStorage.removeItem('wastesphere_intro_played');
-location.reload();
+    // If the key exists in session storage, the intro has already played this session
+    const alreadyPlayed = !!sessionStorage.getItem('wastesphere_intro_played');
+    return alreadyPlayed;
   });
 
   const handleReplayIntro = () => {

@@ -54,9 +54,9 @@ const PageTransition = ({ children }) => (
 
 export function AppContent() {
   const location = useLocation();
- const isStandalonePage =
-  location.pathname === '/login' ||
-  location.pathname === '/register';
+  const isStandalonePage =
+    location.pathname === '/login' ||
+    location.pathname === '/register';
 
   return (
     <div className="min-h-screen bg-transparent text-foreground flex flex-col relative">
