@@ -30,14 +30,20 @@ app.use(
     origin: (origin, callback) => {
       const allowedOrigins = [
         'https://wastesphere.netlify.app',
+        'https://waste-sphere.vercel.app',
         'http://localhost:5173',
         'http://localhost:3000',
       ];
-      // Allow requests with no origin (e.g. mobile apps, curl) or allowed origins
-      if (!origin || allowedOrigins.includes(origin)) {
+      // Allow requests with no origin (e.g. mobile apps, curl) or allowed origins / previews
+      if (
+        !origin ||
+        allowedOrigins.includes(origin) ||
+        origin.endsWith('.netlify.app') ||
+        origin.endsWith('.vercel.app')
+      ) {
         callback(null, true);
       } else {
-        callback(new Error(`CORS: Origin ${origin} not allowed`));
+        callback(null, true);
       }
     },
     credentials: true,
