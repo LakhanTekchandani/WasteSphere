@@ -8,6 +8,7 @@ import { Footer } from './components/common/Footer';
 import { GlowCursor } from './components/common/GlowCursor';
 import { MoodFieldBackground } from './components/common/MoodFieldBackground';
 
+
 // Pages
 import { LandingPage } from './pages/LandingPage';
 import { LoginPage } from './pages/LoginPage';
@@ -53,13 +54,15 @@ const PageTransition = ({ children }) => (
 
 export function AppContent() {
   const location = useLocation();
-  const isLandingPage = location.pathname === '/';
+ const isStandalonePage =
+  location.pathname === '/login' ||
+  location.pathname === '/register';
 
   return (
     <div className="min-h-screen bg-transparent text-foreground flex flex-col relative">
       <MoodFieldBackground />
       <GlowCursor />
-      {!isLandingPage && <Navbar />}
+      {!isStandalonePage && <Navbar />}
       <main className="flex-grow relative z-10">
         <AnimatePresence mode="wait">
           <Routes location={location} key={location.pathname}>
@@ -89,7 +92,7 @@ export function AppContent() {
           </Routes>
         </AnimatePresence>
       </main>
-      {!isLandingPage && <Footer />}
+      {!isStandalonePage && <Footer />}
     </div>
   );
 }
